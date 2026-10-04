@@ -61,14 +61,16 @@ internal fun CinematicGameScreen(engine: GameEngine) {
         cinematicHaptic(context, scene.direction.haptic)
         lineIndex = 0
         scene.lines.forEachIndexed { index, line ->
-            delay(line.delayBeforeMs.coerceAtLeast(850L))
+            val words = line.text.trim().split(Regex("\\s+")).count { it.isNotBlank() }
+            val readingTime = (words * 430L).coerceIn(3200L, 7600L)
+            delay(maxOf(line.delayBeforeMs, readingTime))
             if (lineIndex <= index) lineIndex = index + 1
         }
     }
 
     LaunchedEffect(note) {
         if (note != null) {
-            delay(2500)
+            delay(3600)
             engine.clearNotification()
         }
     }
@@ -100,14 +102,14 @@ internal fun CinematicGameScreen(engine: GameEngine) {
             ) {
                 MainScene(scene)
 
-                if (!storyReady && scene.lines.isNotEmpty()) {
-                    val currentLine = scene.lines[lineIndex.coerceAtMost(scene.lines.lastIndex)]
-                    CinematicSubtitle(
-                        line = currentLine,
+                if (scene.lines.isNotEmpty() && lineIndex < scene.lines.size) {
+                    CinematicStoryOverlay(
+                        lines = scene.lines,
+                        visibleCount = (lineIndex + 1).coerceAtMost(scene.lines.size),
                         onAdvance = { lineIndex = (lineIndex + 1).coerceAtMost(scene.lines.size) },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(horizontal = 12.dp, vertical = 14.dp)
+                            .padding(horizontal = 10.dp, vertical = 10.dp)
                     )
                 }
 
@@ -132,8 +134,8 @@ internal fun CinematicGameScreen(engine: GameEngine) {
                 if (note != null) {
                     Box(
                         Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(10.dp)
+                            .align(Alignment.TopCenter)
+                            .padding(top = 76.dp)
                     ) {
                         PickupCard(note)
                     }
@@ -197,7 +199,7 @@ private fun HeaderAndStatus(state: GameState, onMenu: () -> Unit) {
                     Text(
                         "△",
                         color = HudCyan,
-                        fontSize = 27.sp,
+                        fontSize = 20.sp,
                         lineHeight = 25.sp
                     )
                     Text(
@@ -572,49 +574,71 @@ private fun Waveform(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun CinematicSubtitle(
-    line: StoryLine,
+private fun CinematicStoryOverlay(
+    lines: List<StoryLine>,
+    visibleCount: Int,
     onAdvance: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val accent = when (line.speaker) {
-        Speaker.STELLA -> HudCyan
-        Speaker.SYSTEM -> HudMuted
-        Speaker.PLAYER -> HudGreen
-        Speaker.UNKNOWN -> HudRed
-        Speaker.NARRATOR -> HudCyanBright
-    }
+    val visible = lines.take(visibleCount).takeLast(4)
 
     Column(
         modifier
             .fillMaxWidth()
-            .background(Color.Black.copy(alpha = .78f))
-            .border(1.dp, accent.copy(alpha = .5f), RoundedCornerShape(2.dp))
             .clickable(onClick = onAdvance)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-    ) {
-        if (line.speaker != Speaker.NARRATOR) {
-            Text(
-                line.speaker.name,
-                color = accent,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 7.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color.Transparent,
+                        Color.Black.copy(alpha = .54f),
+                        Color.Black.copy(alpha = .84f)
+                    )
+                )
             )
-            Spacer(Modifier.height(2.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        visible.forEachIndexed { index, line ->
+            val isCurrent = index == visible.lastIndex
+            val accent = when (line.speaker) {
+                Speaker.STELLA -> HudCyan
+                Speaker.SYSTEM -> HudMuted
+                Speaker.PLAYER -> HudGreen
+                Speaker.UNKNOWN -> HudRed
+                Speaker.NARRATOR -> HudCyanBright
+            }
+
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                if (line.speaker != Speaker.NARRATOR) {
+                    Text(
+                        line.speaker.name,
+                        color = accent.copy(alpha = if (isCurrent) 1f else .55f),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 6.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = .7.sp,
+                        modifier = Modifier.width(50.dp)
+                    )
+                } else {
+                    Spacer(Modifier.width(50.dp))
+                }
+
+                Text(
+                    line.text,
+                    color = Color.White.copy(alpha = if (isCurrent) 1f else .48f),
+                    fontSize = if (isCurrent) 12.sp else 10.sp,
+                    lineHeight = if (isCurrent) 16.sp else 13.sp,
+                    fontWeight = if (isCurrent) FontWeight.Medium else FontWeight.Normal,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
+
         Text(
-            line.text,
-            color = Color.White,
-            fontSize = 11.sp,
-            lineHeight = 15.sp,
-            fontWeight = if (line.speaker == Speaker.SYSTEM) FontWeight.Medium else FontWeight.Normal,
-            maxLines = 3,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            "TAP TO CONTINUE",
+            "TAP TO ADVANCE",
             color = HudMuted.copy(alpha = .72f),
             fontFamily = FontFamily.Monospace,
             fontSize = 5.sp,
@@ -627,8 +651,8 @@ private fun CinematicSubtitle(
 private fun PickupCard(text: String) {
     HudPanel(
         modifier = Modifier
-            .width(174.dp)
-            .height(66.dp),
+            .width(190.dp)
+            .height(48.dp),
         accent = HudCyan
     ) {
         Row(
@@ -639,7 +663,7 @@ private fun PickupCard(text: String) {
         ) {
             Box(
                 Modifier
-                    .size(48.dp)
+                    .size(32.dp)
                     .border(1.dp, HudCyan.copy(alpha = .55f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -651,15 +675,10 @@ private fun PickupCard(text: String) {
                     text.replace(" // ", "\n"),
                     color = HudCyanBright,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 7.sp,
+                    fontSize = 6.sp,
                     fontWeight = FontWeight.Bold,
-                    lineHeight = 9.sp,
-                    maxLines = 3
-                )
-                Text(
-                    "Press to view",
-                    color = HudMuted,
-                    fontSize = 6.sp
+                    lineHeight = 8.sp,
+                    maxLines = 2
                 )
             }
             Text("›", color = HudCyan, fontSize = 18.sp)
