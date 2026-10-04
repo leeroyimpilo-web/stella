@@ -18,8 +18,13 @@ data class Choice(
     val powerDelta: Int = 0,
     val oxygenDelta: Int = 0,
     val hullDelta: Int = 0,
+    val healthDelta: Int = 0,
     val addFlags: Set<String> = emptySet(),
-    val requiredFlags: Set<String> = emptySet()
+    val requiredFlags: Set<String> = emptySet(),
+    val addItems: List<String> = emptyList(),
+    val removeItems: List<String> = emptyList(),
+    val requiredItems: Set<String> = emptySet(),
+    val addCodex: Set<String> = emptySet()
 )
 
 data class SceneDirection(
@@ -46,8 +51,11 @@ data class GameState(
     val power: Int = 74,
     val oxygen: Int = 91,
     val hull: Int = 64,
+    val health: Int = 100,
     val stellaTrust: Int = 50,
     val flags: Set<String> = emptySet(),
+    val inventory: List<String> = emptyList(),
+    val codex: Set<String> = setOf("eidolon"),
     val history: List<String> = emptyList(),
     val playStarted: Boolean = false
 ) {
@@ -55,6 +63,10 @@ data class GameState(
         power = power.coerceIn(0, 100),
         oxygen = oxygen.coerceIn(0, 100),
         hull = hull.coerceIn(0, 100),
+        health = health.coerceIn(0, 100),
         stellaTrust = stellaTrust.coerceIn(0, 100)
     )
+
+    fun hasItem(id: String): Boolean = inventory.contains(id)
+    fun itemCount(id: String): Int = inventory.count { it == id }
 }
