@@ -80,7 +80,7 @@ fun StellaApp() {
                 transitionSpec = { fadeIn(tween(650)) togetherWith fadeOut(tween(350)) },
                 label = "screen"
             ) { playing ->
-                if (playing) GameScreen(engine) else MainMenu(engine)
+                if (playing) CinematicGameScreen(engine) else MainMenu(engine)
             }
         }
     }
