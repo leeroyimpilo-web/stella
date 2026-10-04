@@ -39,14 +39,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.stella.game.R
 import com.stella.game.game.*
 import kotlinx.coroutines.delay
 
@@ -92,9 +90,10 @@ fun StellaApp() {
 private fun MainMenu(engine: GameEngine) {
     Box(Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(R.drawable.bridge_first_view),
+            bitmap = PixelArtAssets.scene("bridge_first_view"),
             contentDescription = null,
             contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.None,
             modifier = Modifier.fillMaxSize().alpha(.46f)
         )
         Box(
@@ -366,9 +365,10 @@ private fun SceneVisual(scene: Scene, modifier: Modifier = Modifier) {
             .background(Color.Black)
     ) {
         Image(
-            painter = painterResource(sceneArtRes(scene.direction.artworkKey)),
+            bitmap = PixelArtAssets.scene(scene.direction.artworkKey),
             contentDescription = scene.title,
             contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.None,
             modifier = Modifier.fillMaxSize()
         )
         Box(
@@ -488,9 +488,10 @@ private fun QuickInventory(state: GameState, onOpen: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(itemArtRes(id)),
+                            bitmap = PixelArtAssets.item(id),
                             contentDescription = def.name,
                             contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.None,
                             modifier = Modifier.size(36.dp).clip(RoundedCornerShape(2.dp))
                         )
                         Spacer(Modifier.width(5.dp))
@@ -735,9 +736,10 @@ private fun InventoryPanel(engine: GameEngine, onClose: () -> Unit) {
                             .padding(5.dp)
                     ) {
                         Image(
-                            painter = painterResource(itemArtRes(id)),
+                            bitmap = PixelArtAssets.item(id),
                             contentDescription = def.name,
                             contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.None,
                             modifier = Modifier.fillMaxWidth().aspectRatio(1.35f).clip(RoundedCornerShape(2.dp))
                         )
                         Spacer(Modifier.height(4.dp))
@@ -768,9 +770,10 @@ private fun InventoryPanel(engine: GameEngine, onClose: () -> Unit) {
                             .padding(8.dp)
                     ) {
                         Image(
-                            painter = painterResource(itemArtRes(id)),
+                            bitmap = PixelArtAssets.item(id),
                             contentDescription = def.name,
                             contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.None,
                             modifier = Modifier.width(105.dp).aspectRatio(1.3f).clip(RoundedCornerShape(2.dp))
                         )
                         Spacer(Modifier.width(9.dp))
