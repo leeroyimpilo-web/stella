@@ -35,12 +35,20 @@ class GameEngine(context: Context) {
 
     fun canChoose(choice: Choice): Boolean =
         state.flags.containsAll(choice.requiredFlags) &&
+            choice.blockedFlags.none { state.flags.contains(it) } &&
             choice.requiredItems.all { state.hasItem(it) }
 
     fun missingItemNames(choice: Choice): List<String> =
         choice.requiredItems
             .filterNot { state.hasItem(it) }
             .map { ItemCatalog.get(it)?.name ?: it }
+
+    fun choiceLockReason(choice: Choice): String? = when {
+        choice.blockedFlags.any { state.flags.contains(it) } -> "COMPLETED"
+        !state.flags.containsAll(choice.requiredFlags) -> "LOCKED"
+        missingItemNames(choice).isNotEmpty() -> "REQUIRES " + missingItemNames(choice).joinToString(", ").uppercase()
+        else -> null
+    }
 
     fun choose(choice: Choice) {
         if (!canChoose(choice)) return
