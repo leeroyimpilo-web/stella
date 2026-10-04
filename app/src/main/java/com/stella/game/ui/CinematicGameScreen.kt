@@ -54,9 +54,16 @@ internal fun CinematicGameScreen(engine: GameEngine) {
     val scene = engine.currentScene
     val context = androidx.compose.ui.platform.LocalContext.current
     val note = engine.notification
+    var lineIndex by remember(scene.id) { mutableIntStateOf(0) }
+    val storyReady = lineIndex >= scene.lines.size
 
     LaunchedEffect(scene.id) {
         cinematicHaptic(context, scene.direction.haptic)
+        lineIndex = 0
+        scene.lines.forEachIndexed { index, line ->
+            delay(line.delayBeforeMs.coerceAtLeast(850L))
+            if (lineIndex <= index) lineIndex = index + 1
+        }
     }
 
     LaunchedEffect(note) {
@@ -92,6 +99,18 @@ internal fun CinematicGameScreen(engine: GameEngine) {
                     .weight(1f)
             ) {
                 MainScene(scene)
+
+                if (!storyReady && scene.lines.isNotEmpty()) {
+                    val currentLine = scene.lines[lineIndex.coerceAtMost(scene.lines.lastIndex)]
+                    CinematicSubtitle(
+                        line = currentLine,
+                        onAdvance = { lineIndex = (lineIndex + 1).coerceAtMost(scene.lines.size) },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(horizontal = 12.dp, vertical = 14.dp)
+                    )
+                }
+
                 MiniMapCard(
                     state = state,
                     sceneId = scene.id,
@@ -125,7 +144,7 @@ internal fun CinematicGameScreen(engine: GameEngine) {
 
             CodexStrip(state)
 
-            ChoiceRow(engine, scene)
+            ChoiceRow(engine, scene, storyReady)
         }
 
         ScanlineGlass()
@@ -553,6 +572,58 @@ private fun Waveform(modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun CinematicSubtitle(
+    line: StoryLine,
+    onAdvance: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val accent = when (line.speaker) {
+        Speaker.STELLA -> HudCyan
+        Speaker.SYSTEM -> HudMuted
+        Speaker.PLAYER -> HudGreen
+        Speaker.UNKNOWN -> HudRed
+        Speaker.NARRATOR -> HudCyanBright
+    }
+
+    Column(
+        modifier
+            .fillMaxWidth()
+            .background(Color.Black.copy(alpha = .78f))
+            .border(1.dp, accent.copy(alpha = .5f), RoundedCornerShape(2.dp))
+            .clickable(onClick = onAdvance)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        if (line.speaker != Speaker.NARRATOR) {
+            Text(
+                line.speaker.name,
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 7.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+            Spacer(Modifier.height(2.dp))
+        }
+        Text(
+            line.text,
+            color = Color.White,
+            fontSize = 11.sp,
+            lineHeight = 15.sp,
+            fontWeight = if (line.speaker == Speaker.SYSTEM) FontWeight.Medium else FontWeight.Normal,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            "TAP TO CONTINUE",
+            color = HudMuted.copy(alpha = .72f),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 5.sp,
+            modifier = Modifier.align(Alignment.End)
+        )
+    }
+}
+
+@Composable
 private fun PickupCard(text: String) {
     HudPanel(
         modifier = Modifier
@@ -761,7 +832,7 @@ private fun CodexStrip(state: GameState) {
 }
 
 @Composable
-private fun ChoiceRow(engine: GameEngine, scene: Scene) {
+private fun ChoiceRow(engine: GameEngine, scene: Scene, storyReady: Boolean) {
     val choices = scene.choices.take(3)
 
     Row(
@@ -776,6 +847,7 @@ private fun ChoiceRow(engine: GameEngine, scene: Scene) {
                 choice = choice,
                 index = index + 1,
                 engine = engine,
+                storyReady = storyReady,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -787,6 +859,7 @@ private fun ActionChoice(
     choice: Choice?,
     index: Int,
     engine: GameEngine,
+    storyReady: Boolean,
     modifier: Modifier = Modifier
 ) {
     if (choice == null) {
@@ -797,7 +870,7 @@ private fun ActionChoice(
         return
     }
 
-    val enabled = engine.canChoose(choice)
+    val enabled = storyReady && engine.canChoose(choice)
     val danger = choice.id.contains("plasma", ignoreCase = true) ||
         choice.text.contains("PLASMA", ignoreCase = true) ||
         choice.text.contains("BREACH", ignoreCase = true)
@@ -845,7 +918,7 @@ private fun ActionChoice(
             }
 
             Text(
-                if (enabled) actionHint(choice) else (engine.choiceLockReason(choice) ?: "LOCKED"),
+                if (enabled) actionHint(choice) else if (!storyReady) "LISTENING..." else (engine.choiceLockReason(choice) ?: "LOCKED"),
                 color = if (enabled) accent.copy(alpha = .78f) else HudMuted.copy(alpha = .6f),
                 fontSize = 6.sp,
                 maxLines = 2
