@@ -110,15 +110,12 @@ internal fun CinematicGameScreen(engine: GameEngine) {
                         .height(62.dp)
                 )
 
-                AnimatedVisibility(
-                    visible = note != null,
-                    enter = slideInVertically { it / 2 } + fadeIn(),
-                    exit = slideOutVertically { it / 2 } + fadeOut(),
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(10.dp)
-                ) {
-                    if (note != null) {
+                if (note != null) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(10.dp)
+                    ) {
                         PickupCard(note)
                     }
                 }
