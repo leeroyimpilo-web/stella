@@ -1,7 +1,7 @@
 name: Build STELLA APK
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/inventory-art ]
   workflow_dispatch:
 jobs:
   build:
