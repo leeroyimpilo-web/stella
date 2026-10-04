@@ -1,8 +1,11 @@
 name: Build STELLA APK
 on:
   push:
-    branches: [ main, feature/inventory-art ]
+    branches: [ main, "feature/**", "fix/**" ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,6 +13,7 @@ jobs:
       contents: read
     env:
       ANDROID_HOME: /usr/local/lib/android/sdk
+
     steps:
       - uses: actions/checkout@v4
 
@@ -17,6 +21,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Validate embedded artwork
+        run: python3 scripts/validate_pixel_art.py
 
       - name: Install Android SDK packages
         run: |
