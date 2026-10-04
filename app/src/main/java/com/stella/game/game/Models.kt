@@ -21,6 +21,7 @@ data class Choice(
     val healthDelta: Int = 0,
     val addFlags: Set<String> = emptySet(),
     val requiredFlags: Set<String> = emptySet(),
+    val blockedFlags: Set<String> = emptySet(),
     val addItems: List<String> = emptyList(),
     val removeItems: List<String> = emptyList(),
     val requiredItems: Set<String> = emptySet(),
