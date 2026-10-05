@@ -1,0 +1,59 @@
+name: Download and Compress APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Install compression tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full curl
+
+      - name: Download APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://files.modyolo.com/GTA%20San%20Andreas/Grand_Theft_Auto_San_Andreas_%20v2.11.306%20_MOD.apk'
+          curl --fail --location --retry 5 --retry-all-errors \
+            --connect-timeout 30 \
+            --user-agent 'Mozilla/5.0' \
+            --output app.apk "$URL"
+          test -s app.apk
+          file app.apk
+          ls -lh app.apk
+
+      - name: Aggressively compress APK to ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          7z a -tzip -mx=9 -mm=Deflate -mfb=258 -mpass=15 \
+            GTA_SA_v2.11.306_MOD_max.zip app.apk
+          ls -lh app.apk GTA_SA_v2.11.306_MOD_max.zip
+          7z t GTA_SA_v2.11.306_MOD_max.zip
+
+      - name: Publish sizes
+        shell: bash
+        run: |
+          {
+            echo "## Compression result"
+            echo ""
+            echo "Original APK: $(du -h app.apk | cut -f1)"
+            echo "ZIP: $(du -h GTA_SA_v2.11.306_MOD_max.zip | cut -f1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload compressed ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: GTA-SA-v2.11.306-MOD-compressed
+          path: GTA_SA_v2.11.306_MOD_max.zip
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
