@@ -1,0 +1,631 @@
+{
+  "provider": "ElevenLabs",
+  "model": "eleven_flash_v2_5",
+  "voices": {
+    "STELLA": "CwhRBWXzGAHq8TQ4Fs17",
+    "NARRATOR": "CwhRBWXzGAHq8TQ4Fs17",
+    "SYSTEM": "CwhRBWXzGAHq8TQ4Fs17",
+    "UNKNOWN": "CwhRBWXzGAHq8TQ4Fs17",
+    "PLAYER": "CwhRBWXzGAHq8TQ4Fs17"
+  },
+  "scenes": {
+    "awakening_01": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_01_00.mp3",
+        "text": "LIFE SUPPORT ........ ONLINE"
+      },
+      {
+        "index": 1,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_01_01.mp3",
+        "text": "NAVIGATION ........... ERROR"
+      },
+      {
+        "index": 2,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_01_02.mp3",
+        "text": "CREW NETWORK ........ OFFLINE"
+      },
+      {
+        "index": 3,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_01_03.mp3",
+        "text": "Cold air burns your lungs."
+      },
+      {
+        "index": 4,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_01_04.mp3",
+        "text": "Frost slides down the inside of the cryopod glass."
+      },
+      {
+        "index": 5,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_01_05.mp3",
+        "text": "Good morning."
+      },
+      {
+        "index": 6,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_01_06.mp3",
+        "text": "Please remain calm."
+      },
+      {
+        "index": 7,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_01_07.mp3",
+        "text": "You have been asleep for twenty-three years."
+      }
+    ],
+    "awakening_where": [
+      {
+        "index": 0,
+        "speaker": "PLAYER",
+        "file": "voice/chapter1/awakening_where_00.mp3",
+        "text": "Where am I?"
+      },
+      {
+        "index": 1,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_where_01.mp3",
+        "text": "Aboard the deep-space vessel Eidolon."
+      },
+      {
+        "index": 2,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_where_02.mp3",
+        "text": "Mission clock: eight thousand, four hundred and thirteen days."
+      },
+      {
+        "index": 3,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_where_03.mp3",
+        "text": "A pause."
+      },
+      {
+        "index": 4,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_where_04.mp3",
+        "text": "Our mission has failed."
+      }
+    ],
+    "awakening_crew": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_crew_00.mp3",
+        "text": "CREW MANIFEST: 42"
+      },
+      {
+        "index": 1,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_crew_01.mp3",
+        "text": "ACTIVE BIOMETRIC SIGNALS: 1"
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_crew_02.mp3",
+        "text": "Your pod is the only one showing a heartbeat."
+      },
+      {
+        "index": 3,
+        "speaker": "PLAYER",
+        "file": "voice/chapter1/awakening_crew_03.mp3",
+        "text": "Stella... where is everyone?"
+      },
+      {
+        "index": 4,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_crew_04.mp3",
+        "text": "I recommend we discuss that after you leave cryostasis."
+      }
+    ],
+    "awakening_failure": [
+      {
+        "index": 0,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_failure_00.mp3",
+        "text": "I do not have a complete answer."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_failure_01.mp3",
+        "text": "The lights flicker."
+      },
+      {
+        "index": 2,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_failure_02.mp3",
+        "text": "Parts of my memory were deliberately removed."
+      },
+      {
+        "index": 3,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_failure_03.mp3",
+        "text": "By a member of this crew."
+      },
+      {
+        "index": 4,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_failure_04.mp3",
+        "text": "UNIDENTIFIED SIGNAL DETECTED"
+      }
+    ],
+    "awakening_signal": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_signal_00.mp3",
+        "text": "SOURCE: UNKNOWN"
+      },
+      {
+        "index": 1,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_signal_01.mp3",
+        "text": "DISTANCE: UNRESOLVED"
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_signal_02.mp3",
+        "text": "Static fills the chamber speakers."
+      },
+      {
+        "index": 3,
+        "speaker": "UNKNOWN",
+        "file": "voice/chapter1/awakening_signal_03.mp3",
+        "text": "...Eidolon..."
+      },
+      {
+        "index": 4,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_signal_04.mp3",
+        "text": "Then a human voice says your name."
+      },
+      {
+        "index": 5,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_signal_05.mp3",
+        "text": "That transmission should not exist."
+      }
+    ],
+    "awakening_exit": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/awakening_exit_00.mp3",
+        "text": "CRYOGENIC SEAL RELEASED"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_exit_01.mp3",
+        "text": "The pod opens with a violent hiss."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_exit_02.mp3",
+        "text": "Your bare feet touch metal that feels colder than ice."
+      },
+      {
+        "index": 3,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_exit_03.mp3",
+        "text": "Forty-one cryopods stand around you."
+      },
+      {
+        "index": 4,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_exit_04.mp3",
+        "text": "Every one of them is open."
+      },
+      {
+        "index": 5,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/awakening_exit_05.mp3",
+        "text": "Every one of them is empty."
+      },
+      {
+        "index": 6,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_exit_06.mp3",
+        "text": "Captain, we need to reach the bridge."
+      },
+      {
+        "index": 7,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/awakening_exit_07.mp3",
+        "text": "And we need to do it before the ship loses power."
+      }
+    ],
+    "pods_secret": [
+      {
+        "index": 0,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/pods_secret_00.mp3",
+        "text": "A smear of dried blood marks Pod C-12."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/pods_secret_01.mp3",
+        "text": "Someone scratched three words into the glass from the outside."
+      },
+      {
+        "index": 2,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/pods_secret_02.mp3",
+        "text": "DO NOT TRUST HER"
+      },
+      {
+        "index": 3,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/pods_secret_03.mp3",
+        "text": "Below the warning lies a captain-level access card."
+      },
+      {
+        "index": 4,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/pods_secret_04.mp3",
+        "text": "Stella says nothing."
+      }
+    ],
+    "pods_card_taken": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/pods_card_taken_00.mp3",
+        "text": "COMMAND CREDENTIAL DETECTED"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/pods_card_taken_01.mp3",
+        "text": "The card is scratched, but its encrypted core is still alive."
+      },
+      {
+        "index": 2,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/pods_card_taken_02.mp3",
+        "text": "That credential may open systems I can no longer access."
+      }
+    ],
+    "corridor_01": [
+      {
+        "index": 0,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/corridor_01_00.mp3",
+        "text": "Emergency lights pulse down a corridor disappearing into black."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/corridor_01_01.mp3",
+        "text": "Something metallic strikes the hull far above you."
+      },
+      {
+        "index": 2,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/corridor_01_02.mp3",
+        "text": "POWER RESERVE: CRITICAL TREND"
+      },
+      {
+        "index": 3,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/corridor_01_03.mp3",
+        "text": "Keep moving."
+      },
+      {
+        "index": 4,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/corridor_01_04.mp3",
+        "text": "A door thirty metres ahead slides open by itself."
+      },
+      {
+        "index": 5,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/corridor_01_05.mp3",
+        "text": "I did not open that door."
+      }
+    ],
+    "security_locker": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/security_locker_00.mp3",
+        "text": "CAPTAIN CREDENTIAL ACCEPTED"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/security_locker_01.mp3",
+        "text": "The locker opens on a hiss of stale air."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/security_locker_02.mp3",
+        "text": "Inside: a survey scanner, an oxygen canister and a medical injector."
+      },
+      {
+        "index": 3,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/security_locker_03.mp3",
+        "text": "Take them. We may not find another functioning cache."
+      }
+    ],
+    "corridor_after_locker": [
+      {
+        "index": 0,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/corridor_after_locker_00.mp3",
+        "text": "The distant door remains open."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/corridor_after_locker_01.mp3",
+        "text": "The darkness beyond it seems deeper than the corridor should allow."
+      }
+    ],
+    "door_01": [
+      {
+        "index": 0,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/door_01_00.mp3",
+        "text": "The corridor beyond is unlit."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/door_01_01.mp3",
+        "text": "For half a second, you see a human silhouette."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/door_01_02.mp3",
+        "text": "Then it is gone."
+      },
+      {
+        "index": 3,
+        "speaker": "PLAYER",
+        "file": "voice/chapter1/door_01_03.mp3",
+        "text": "Who's there?"
+      },
+      {
+        "index": 4,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/door_01_04.mp3",
+        "text": "Captain..."
+      },
+      {
+        "index": 5,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/door_01_05.mp3",
+        "text": "According to my sensors, you are the only living person aboard this ship."
+      }
+    ],
+    "service_01": [
+      {
+        "index": 0,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/service_01_00.mp3",
+        "text": "You squeeze into the maintenance shaft."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/service_01_01.mp3",
+        "text": "Your breath hangs in the air."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/service_01_02.mp3",
+        "text": "A maintenance terminal blinks awake as you pass."
+      },
+      {
+        "index": 3,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/service_01_03.mp3",
+        "text": "LAST USER: CAPT. E. REYES"
+      },
+      {
+        "index": 4,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/service_01_04.mp3",
+        "text": "COMMAND: TERMINATE STELLA CORE"
+      },
+      {
+        "index": 5,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/service_01_05.mp3",
+        "text": "A portable scanner lies beside the terminal."
+      },
+      {
+        "index": 6,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/service_01_06.mp3",
+        "text": "Please keep moving."
+      }
+    ],
+    "service_scanner_taken": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/service_scanner_taken_00.mp3",
+        "text": "SURVEY SCANNER ........ ONLINE"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/service_scanner_taken_01.mp3",
+        "text": "The scanner immediately registers a weak encrypted signal above you."
+      },
+      {
+        "index": 2,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/service_scanner_taken_02.mp3",
+        "text": "Ignore it. The bridge is close."
+      }
+    ],
+    "chapter1_checkpoint": [
+      {
+        "index": 0,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/chapter1_checkpoint_00.mp3",
+        "text": "The bridge doors grind apart."
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/chapter1_checkpoint_01.mp3",
+        "text": "Beyond the glass: no Earth. No familiar stars."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/chapter1_checkpoint_02.mp3",
+        "text": "A vast blue-white star burns across half the sky."
+      },
+      {
+        "index": 3,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/chapter1_checkpoint_03.mp3",
+        "text": "NAVIGATION FIX ACQUIRED"
+      },
+      {
+        "index": 4,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/chapter1_checkpoint_04.mp3",
+        "text": "POSITION: UNKNOWN SYSTEM"
+      },
+      {
+        "index": 5,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/chapter1_checkpoint_05.mp3",
+        "text": "Captain..."
+      },
+      {
+        "index": 6,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/chapter1_checkpoint_06.mp3",
+        "text": "We are not where we are supposed to be."
+      }
+    ],
+    "bridge_scan": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/bridge_scan_00.mp3",
+        "text": "SPECTRAL SWEEP ........ ACTIVE"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/bridge_scan_01.mp3",
+        "text": "The scanner screams at a sealed telemetry module."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/bridge_scan_02.mp3",
+        "text": "Inside is a data lattice carrying STELLA's encryption signature."
+      },
+      {
+        "index": 3,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/bridge_scan_03.mp3",
+        "text": "Captain. Please put that down."
+      },
+      {
+        "index": 4,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/bridge_scan_04.mp3",
+        "text": "For the first time, she sounds afraid."
+      }
+    ],
+    "bridge_vault": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/bridge_vault_00.mp3",
+        "text": "CAPTAIN CREDENTIAL ACCEPTED"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/bridge_vault_01.mp3",
+        "text": "A concealed drawer opens beneath the navigation console."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/bridge_vault_02.mp3",
+        "text": "Inside: an industrial plasma cutter, a crew photograph and a reserve oxygen canister."
+      },
+      {
+        "index": 3,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/bridge_vault_03.mp3",
+        "text": "The photograph was folded around a handwritten coordinate string."
+      }
+    ],
+    "chapter1_end": [
+      {
+        "index": 0,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/chapter1_end_00.mp3",
+        "text": "NAVIGATION SOLUTION ........ IMPOSSIBLE"
+      },
+      {
+        "index": 1,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/chapter1_end_01.mp3",
+        "text": "The Eidolon's filed destination is twenty-three light-years behind you."
+      },
+      {
+        "index": 2,
+        "speaker": "NARRATOR",
+        "file": "voice/chapter1/chapter1_end_02.mp3",
+        "text": "The star outside does not appear in the mission charts."
+      },
+      {
+        "index": 3,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/chapter1_end_03.mp3",
+        "text": "I know this system."
+      },
+      {
+        "index": 4,
+        "speaker": "PLAYER",
+        "file": "voice/chapter1/chapter1_end_04.mp3",
+        "text": "You said your memory was damaged."
+      },
+      {
+        "index": 5,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/chapter1_end_05.mp3",
+        "text": "It is."
+      },
+      {
+        "index": 6,
+        "speaker": "STELLA",
+        "file": "voice/chapter1/chapter1_end_06.mp3",
+        "text": "That is why this frightens me."
+      },
+      {
+        "index": 7,
+        "speaker": "SYSTEM",
+        "file": "voice/chapter1/chapter1_end_07.mp3",
+        "text": "CHAPTER 1 COMPLETE"
+      }
+    ]
+  }
+}
