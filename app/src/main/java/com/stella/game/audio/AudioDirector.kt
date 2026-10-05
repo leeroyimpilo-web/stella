@@ -3,6 +3,8 @@ package com.stella.game.audio
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.media.PlaybackParams
+import com.stella.game.game.Speaker
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -18,7 +20,7 @@ class AudioDirector(context: Context) {
     var ambienceVolume: Float = .42f
     var sfxVolume: Float = .72f
 
-    suspend fun playVoiceAndWait(sceneId: String, lineIndex: Int): Boolean =
+    suspend fun playVoiceAndWait(sceneId: String, lineIndex: Int, speaker: Speaker): Boolean =
         suspendCancellableCoroutine { continuation ->
             stopVoice()
             val path = "voice/chapter1/" + sceneId + "_" + lineIndex.toString().padStart(2, '0') + ".mp3"
@@ -29,20 +31,34 @@ class AudioDirector(context: Context) {
             }
 
             voicePlayer = player
+            duckAmbience(true)
             player.setVolume(masterVolume * voiceVolume, masterVolume * voiceVolume)
+            runCatching {
+                val (speed, pitch) = when (speaker) {
+                    Speaker.STELLA -> 0.98f to 1.08f
+                    Speaker.NARRATOR -> 0.94f to 0.93f
+                    Speaker.SYSTEM -> 0.90f to 0.82f
+                    Speaker.UNKNOWN -> 0.86f to 0.76f
+                    Speaker.PLAYER -> 1.00f to 0.98f
+                }
+                player.playbackParams = PlaybackParams().setSpeed(speed).setPitch(pitch)
+            }
             player.setOnCompletionListener {
                 if (voicePlayer === it) voicePlayer = null
+                duckAmbience(false)
                 it.release()
                 if (continuation.isActive) continuation.resume(true)
             }
             player.setOnErrorListener { mp, _, _ ->
                 if (voicePlayer === mp) voicePlayer = null
+                duckAmbience(false)
                 mp.release()
                 if (continuation.isActive) continuation.resume(false)
                 true
             }
             continuation.invokeOnCancellation {
                 if (voicePlayer === player) voicePlayer = null
+                duckAmbience(false)
                 runCatching { player.stop() }
                 player.release()
             }
@@ -88,6 +104,12 @@ class AudioDirector(context: Context) {
             it.release()
         }
         voicePlayer = null
+        duckAmbience(false)
+    }
+
+    private fun duckAmbience(speaking: Boolean) {
+        val target = if (speaking) ambienceVolume * 0.38f else ambienceVolume
+        ambiencePlayer?.setVolume(masterVolume * target, masterVolume * target)
     }
 
     fun release() {
