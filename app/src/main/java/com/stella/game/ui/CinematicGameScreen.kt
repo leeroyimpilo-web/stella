@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.stella.game.game.*
+import com.stella.game.audio.AudioDirector
 import kotlinx.coroutines.delay
 
 private val HudBlack = Color(0xFF02070B)
@@ -54,22 +55,37 @@ internal fun CinematicGameScreen(engine: GameEngine) {
     val scene = engine.currentScene
     val context = androidx.compose.ui.platform.LocalContext.current
     val note = engine.notification
+    val audio = remember { AudioDirector(context) }
     var lineIndex by remember(scene.id) { mutableIntStateOf(0) }
     val storyReady = lineIndex >= scene.lines.size
+
+    DisposableEffect(Unit) {
+        onDispose { audio.release() }
+    }
 
     LaunchedEffect(scene.id) {
         cinematicHaptic(context, scene.direction.haptic)
         lineIndex = 0
-        scene.lines.forEachIndexed { index, line ->
+        audio.playAmbience(scene.direction.ambience)
+    }
+
+    LaunchedEffect(scene.id, lineIndex) {
+        if (lineIndex >= scene.lines.size) return@LaunchedEffect
+        val line = scene.lines[lineIndex]
+        val voiced = audio.playVoiceAndWait(scene.id, lineIndex)
+        if (!voiced) {
             val words = line.text.trim().split(Regex("\\s+")).count { it.isNotBlank() }
             val readingTime = (words * 430L).coerceIn(3200L, 7600L)
             delay(maxOf(line.delayBeforeMs, readingTime))
-            if (lineIndex <= index) lineIndex = index + 1
+        }
+        if (lineIndex < scene.lines.size) {
+            lineIndex = (lineIndex + 1).coerceAtMost(scene.lines.size)
         }
     }
 
     LaunchedEffect(note) {
         if (note != null) {
+            audio.playSfx("pickup")
             delay(3600)
             engine.clearNotification()
         }
@@ -106,7 +122,10 @@ internal fun CinematicGameScreen(engine: GameEngine) {
                     CinematicStoryOverlay(
                         lines = scene.lines,
                         visibleCount = (lineIndex + 1).coerceAtMost(scene.lines.size),
-                        onAdvance = { lineIndex = (lineIndex + 1).coerceAtMost(scene.lines.size) },
+                        onAdvance = {
+                            audio.stopVoice()
+                            lineIndex = (lineIndex + 1).coerceAtMost(scene.lines.size)
+                        },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(horizontal = 10.dp, vertical = 10.dp)
@@ -142,11 +161,11 @@ internal fun CinematicGameScreen(engine: GameEngine) {
                 }
             }
 
-            InventoryBelt(engine)
+            InventoryBelt(engine) { audio.playSfx("choice") }
 
             CodexStrip(state)
 
-            ChoiceRow(engine, scene, storyReady)
+            ChoiceRow(engine, scene, storyReady) { audio.playSfx("choice") }
         }
 
         ScanlineGlass()
@@ -382,16 +401,21 @@ private fun objectiveFor(sceneId: String): String = when {
 
 @Composable
 private fun MainScene(scene: Scene) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val cinematic = remember(scene.direction.artworkKey) {
+        CinematicSceneAssets.scene(context, scene.direction.artworkKey)
+    }
+
     HudPanel(
         modifier = Modifier.fillMaxSize(),
         accent = if (scene.direction.danger) HudRed else HudCyan
     ) {
         Box(Modifier.fillMaxSize()) {
             Image(
-                bitmap = PixelArtAssets.scene(scene.direction.artworkKey),
+                bitmap = cinematic ?: PixelArtAssets.scene(scene.direction.artworkKey),
                 contentDescription = scene.title,
                 contentScale = ContentScale.Crop,
-                filterQuality = FilterQuality.None,
+                filterQuality = if (cinematic != null) FilterQuality.Medium else FilterQuality.None,
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -687,7 +711,7 @@ private fun PickupCard(text: String) {
 }
 
 @Composable
-private fun InventoryBelt(engine: GameEngine) {
+private fun InventoryBelt(engine: GameEngine, onSfx: () -> Unit) {
     val state = engine.state
     val slots = state.inventory.distinct().take(5)
 
@@ -726,7 +750,10 @@ private fun InventoryBelt(engine: GameEngine) {
                         count = id?.let { state.itemCount(it) } ?: 0,
                         modifier = Modifier.weight(1f),
                         onClick = {
-                            if (id != null) engine.useItem(id)
+                            if (id != null) {
+                                onSfx()
+                                engine.useItem(id)
+                            }
                         }
                     )
                 }
@@ -810,11 +837,15 @@ private fun CodexStrip(state: GameState) {
                         .fillMaxHeight()
                         .border(1.dp, HudCyan.copy(alpha = .45f), RoundedCornerShape(2.dp))
                 ) {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val bridgeArt = remember {
+                        CinematicSceneAssets.scene(context, "bridge_first_view")
+                    }
                     Image(
-                        bitmap = PixelArtAssets.scene("bridge_first_view"),
+                        bitmap = bridgeArt ?: PixelArtAssets.scene("bridge_first_view"),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        filterQuality = FilterQuality.None,
+                        filterQuality = if (bridgeArt != null) FilterQuality.Medium else FilterQuality.None,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -851,7 +882,7 @@ private fun CodexStrip(state: GameState) {
 }
 
 @Composable
-private fun ChoiceRow(engine: GameEngine, scene: Scene, storyReady: Boolean) {
+private fun ChoiceRow(engine: GameEngine, scene: Scene, storyReady: Boolean, onSfx: () -> Unit) {
     val choices = scene.choices.take(3)
 
     Row(
@@ -867,6 +898,7 @@ private fun ChoiceRow(engine: GameEngine, scene: Scene, storyReady: Boolean) {
                 index = index + 1,
                 engine = engine,
                 storyReady = storyReady,
+                onSfx = onSfx,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -879,6 +911,7 @@ private fun ActionChoice(
     index: Int,
     engine: GameEngine,
     storyReady: Boolean,
+    onSfx: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (choice == null) {
@@ -902,7 +935,10 @@ private fun ActionChoice(
     HudPanel(
         modifier = modifier
             .fillMaxHeight()
-            .then(if (enabled) Modifier.clickable { engine.choose(choice) } else Modifier),
+            .then(if (enabled) Modifier.clickable {
+                onSfx()
+                engine.choose(choice)
+            } else Modifier),
         accent = accent
     ) {
         Column(
