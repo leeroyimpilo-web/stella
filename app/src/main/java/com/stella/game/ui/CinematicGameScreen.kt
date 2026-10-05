@@ -401,16 +401,21 @@ private fun objectiveFor(sceneId: String): String = when {
 
 @Composable
 private fun MainScene(scene: Scene) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val cinematic = remember(scene.direction.artworkKey) {
+        CinematicSceneAssets.scene(context, scene.direction.artworkKey)
+    }
+
     HudPanel(
         modifier = Modifier.fillMaxSize(),
         accent = if (scene.direction.danger) HudRed else HudCyan
     ) {
         Box(Modifier.fillMaxSize()) {
             Image(
-                bitmap = PixelArtAssets.scene(scene.direction.artworkKey),
+                bitmap = cinematic ?: PixelArtAssets.scene(scene.direction.artworkKey),
                 contentDescription = scene.title,
                 contentScale = ContentScale.Crop,
-                filterQuality = FilterQuality.None,
+                filterQuality = if (cinematic != null) FilterQuality.Medium else FilterQuality.None,
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -832,11 +837,15 @@ private fun CodexStrip(state: GameState) {
                         .fillMaxHeight()
                         .border(1.dp, HudCyan.copy(alpha = .45f), RoundedCornerShape(2.dp))
                 ) {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    val bridgeArt = remember {
+                        CinematicSceneAssets.scene(context, "bridge_first_view")
+                    }
                     Image(
-                        bitmap = PixelArtAssets.scene("bridge_first_view"),
+                        bitmap = bridgeArt ?: PixelArtAssets.scene("bridge_first_view"),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        filterQuality = FilterQuality.None,
+                        filterQuality = if (bridgeArt != null) FilterQuality.Medium else FilterQuality.None,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
