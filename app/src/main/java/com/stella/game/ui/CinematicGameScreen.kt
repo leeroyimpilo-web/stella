@@ -72,7 +72,7 @@ internal fun CinematicGameScreen(engine: GameEngine) {
     LaunchedEffect(scene.id, lineIndex) {
         if (lineIndex >= scene.lines.size) return@LaunchedEffect
         val line = scene.lines[lineIndex]
-        val voiced = audio.playVoiceAndWait(scene.id, lineIndex)
+        val voiced = audio.playVoiceAndWait(scene.id, lineIndex, line.speaker)
         if (!voiced) {
             val words = line.text.trim().split(Regex("\\s+")).count { it.isNotBlank() }
             val readingTime = (words * 430L).coerceIn(3200L, 7600L)
