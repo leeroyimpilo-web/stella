@@ -10,18 +10,38 @@ android {
         applicationId = "za.co.lottoinsight"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
+        val baseUrl = System.getenv("LOTTO_LICENSE_SERVER_URL") ?: "https://example.invalid"
+        val publicKey = System.getenv("LOTTO_LICENSE_PUBLIC_KEY_B64") ?: ""
+        buildConfigField("String", "LICENSE_SERVER_URL", "\\\"${baseUrl}\\\"")
+        buildConfigField("String", "LICENSE_PUBLIC_KEY_B64", "\\\"${publicKey}\\\"")
+    }
+    signingConfigs {
+        create("retail") {
+            storeFile = file(System.getenv("LOTTO_KEYSTORE_FILE") ?: "signing-not-configured.jks")
+            storePassword = System.getenv("LOTTO_STORE_PASSWORD")
+            keyAlias = System.getenv("LOTTO_KEY_ALIAS")
+            keyPassword = System.getenv("LOTTO_KEY_PASSWORD")
+        }
     }
     buildTypes {
-        release { isMinifyEnabled = false }
+        debug {
+            // Development APK remains unlocked for internal testing only.
+            buildConfigField("boolean", "LICENSE_REQUIRED", "false")
+        }
+        release {
+            isMinifyEnabled = false
+            buildConfigField("boolean", "LICENSE_REQUIRED", "true")
+            signingConfig = signingConfigs.getByName("retail")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
 }
 dependencies {
     val bom = platform("androidx.compose:compose-bom:2024.12.01")

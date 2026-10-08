@@ -29,6 +29,7 @@ import kotlinx.coroutines.withContext
 import za.co.lottoinsight.data.DrawSync
 import za.co.lottoinsight.data.LottoDatabase
 import za.co.lottoinsight.export.ExportFiles
+import za.co.lottoinsight.licence.LicenseGate
 import za.co.lottoinsight.model.*
 
 private val Yellow = Color(0xFFFFDA00)
@@ -52,7 +53,8 @@ class MainActivity : ComponentActivity() {
         DrawSync.schedule(this)
         setContent {
             MaterialTheme(colorScheme = lottoColorScheme) {
-                LottoRoot(db)
+                if (BuildConfig.LICENSE_REQUIRED) LicenseGate { LottoRoot(db) }
+                else LottoRoot(db)
             }
         }
     }
@@ -61,6 +63,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun LottoRoot(db: LottoDatabase) {
     val context = LocalContext.current
+    val retailerBrand = remember { context.getSharedPreferences("lotto_paid_licence", 0).getString("retailer", null) }
     val scope = rememberCoroutineScope()
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var selectedId by rememberSaveable { mutableStateOf("lotto") }
@@ -124,7 +127,11 @@ private fun LottoRoot(db: LottoDatabase) {
                     Spacer(Modifier.width(11.dp))
                     Column(Modifier.weight(1f)) {
                         Text("LOTTO INTELLIGENCE", fontWeight = FontWeight.ExtraBold, letterSpacing = 0.4.sp)
-                        Text("SA RESULTS • OFFLINE FIRST", color = Muted, fontSize = 10.sp, letterSpacing = 1.sp)
+                        Text(
+                            retailerBrand?.let { "FROM ${it.uppercase()}" } ?: "SA RESULTS • OFFLINE FIRST",
+                            color = Muted, fontSize = 10.sp, letterSpacing = 1.sp,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
                     }
                     TextButton(enabled = !busy, onClick = { sync(true) }) {
                         Text(if (busy) "Syncing" else "↻ Sync", color = Yellow)
