@@ -51,8 +51,13 @@ object NumberGenerator {
         return result.values.toList()
     }
 
-    private fun randomNumbers(game: LottoGame): List<Int> =
-        (1..game.maxNumber).shuffled(secureRandom.asKotlinRandom()).take(game.pickCount).sorted()
+    private fun randomNumbers(game: LottoGame): List<Int> {
+        val chosen = mutableSetOf<Int>()
+        while (chosen.size < game.pickCount) {
+            chosen += secureRandom.nextInt(game.maxNumber) + 1
+        }
+        return chosen.sorted()
+    }
 
     private fun spreadNumbers(game: LottoGame): List<Int> {
         val result = mutableSetOf<Int>()
@@ -63,8 +68,4 @@ object NumberGenerator {
         }
         return result.sorted()
     }
-    private fun SecureRandom.asKotlinRandom(): kotlin.random.Random =
-        object : kotlin.random.Random() {
-            override fun nextBits(bitCount: Int): Int = nextInt().ushr(32 - bitCount)
-        }
 }
