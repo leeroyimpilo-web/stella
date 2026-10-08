@@ -43,7 +43,7 @@ export function decryptSerial(value, keyB64) {
 function payFastEncode(value) {
   return encodeURIComponent(String(value).trim())
     .replace(/%20/g, "+")
-    .replace(/%7E/gi, "%7E")
+    .replace(/~/g, "%7E")
     .replace(/%[a-f0-9]{2}/gi, m => m.toUpperCase())
     .replace(/[!'()*]/g, c => "%" + c.charCodeAt(0).toString(16).toUpperCase());
 }

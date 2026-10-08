@@ -2,19 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#17191D">
 <title>Lotto Intelligence · Independent Android App</title>
-<style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#12151a;color:#f6f6f8;--accent:#ffda00}
-*{box-sizing:border-box}body{margin:0;min-height:100vh}main{max-width:550px;margin:0 auto;padding:30px 20px 60px}
-header{display:flex;align-items:center;gap:12px;margin-bottom:40px}.mark{border-radius:14px;background:var(--accent);color:#12151a;font-size:30px;font-weight:900;width:54px;height:54px;text-align:center;line-height:54px}
-h1{font-size:32px;line-height:1.1;margin:12px 0}h2{margin-top:0;font-size:21px}p{line-height:1.6;color:#bfc2cb}
-.kicker{color:var(--accent);letter-spacing:1.8px;text-transform:uppercase;font-size:11px;font-weight:700}
-.panel{background:#22262f;border:1px solid #373c47;border-radius:22px;padding:23px;margin:20px 0}.price{color:var(--accent);font-size:52px;font-weight:800;line-height:1.2}
-input[type=email]{display:block;width:100%;background:#12151a;border:1px solid #555b67;color:#fff;border-radius:12px;padding:15px;font-size:16px;margin-top:10px}
-label{display:block;color:#eff1f5;font-size:14px}button{width:100%;padding:16px;border:0;border-radius:13px;background:var(--accent);color:#151515;font-size:16px;font-weight:800;margin-top:19px;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
-small,.muted{color:#b2b6c0;font-size:12px}.row{display:flex;gap:10px;align-items:flex-start;margin-top:18px}.row label{line-height:1.5}
-.serial{font-size:20px;letter-spacing:1px;background:#111;padding:14px;border-radius:10px;overflow-wrap:anywhere}
-#message{color:#ffb8b8;min-height:20px}a{color:var(--accent)}.green{color:#6edfae}footer{font-size:12px;color:#aeb2bc;border-top:1px solid #333a44;margin-top:40px;padding-top:20px;line-height:1.7}
-</style></head><body>
+<link rel="stylesheet" href="/assets/app.css"></head><body>
 <main>
 <header><div class="mark">L</div><div><strong>LOTTO INTELLIGENCE</strong><div class="muted">SOUTH AFRICAN RESULTS & RESEARCH</div></div></header>
 <section id="shop">
@@ -42,46 +30,4 @@ small,.muted{color:#b2b6c0;font-size:12px}.row{display:flex;gap:10px;align-items
 </section>
 <footer>Independent, unofficial lottery statistical software. Not affiliated with or endorsed by the National Lottery operator, its retailers or the National Lotteries Commission. The app does not sell lottery tickets. Number patterns do not predict independent draws. 18+ only; gamble responsibly. Support and refund policy must be supplied by the merchant before launch. Results source: BetTip. </footer>
 </main>
-<script>
-const $=x=>document.getElementById(x), params=new URLSearchParams(location.search);
-const store=location.pathname.startsWith("/s/")?location.pathname.slice(3):"";
-async function data(url,opts={}){const r=await fetch(url,opts);const j=await r.json();if(!r.ok)throw Error(j.error||"Service unavailable");return j}
-async function loadStore(){
- if(!store)return;
- try{const j=await data("/api/retailers/"+encodeURIComponent(store));
- document.documentElement.style.setProperty("--accent",j.retailer.color);
- $("retailer").textContent="Available from "+j.retailer.name;
- }catch(e){$("buy").disabled=true;$("message").textContent=e.message}
-}
-$("purchase").onsubmit=async e=>{
- e.preventDefault();$("buy").disabled=true;$("message").textContent="";
- try{
-  const j=await data("/api/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({retailer:store,email:$("email").value,ageConfirmed:$("adult").checked})});
-  sessionStorage.setItem("lotto:"+j.orderId,j.accessToken);
-  const f=document.createElement("form");f.action=j.paymentUrl;f.method="POST";
-  for(const [k,v] of Object.entries(j.paymentFields)){const input=document.createElement("input");input.type="hidden";input.name=k;input.value=v;f.appendChild(input)}
-  document.body.appendChild(f);f.submit();
- }catch(err){$("message").textContent=err.message;$("buy").disabled=false}
-};
-const order=params.get("order");
-async function receipt(){
- $("shop").hidden=true;$("receipt").hidden=false;
- const access=sessionStorage.getItem("lotto:"+order);
- if(!access){$("status").textContent="To recover a serial, open the payment receipt on the same browser used during checkout or contact support with the order reference.";return}
- try{
-  const j=await data("/api/orders/"+encodeURIComponent(order),{headers:{"X-Order-Token":access}});
-  if(j.status!=="paid"){$("status").textContent="PayFast confirmation is pending. Use Refresh to check again.";return}
-  $("status").textContent="Payment confirmed · "+j.retailer;
-  $("serial").textContent=j.serial;$("paid").hidden=false;
-  $("copy").onclick=()=>navigator.clipboard.writeText(j.serial);
-  $("download").disabled=!j.downloadReady;
-  $("download").onclick=async()=>{
-   try{const r=await fetch("/api/orders/"+encodeURIComponent(order)+"/apk",{headers:{"X-Order-Token":access}});
-    if(!r.ok)throw Error("APK not yet available");const blob=await r.blob(),url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download="Lotto-Intelligence.apk";a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
-   }catch(err){$("status").textContent=err.message}
-  };
- }catch(err){$("status").textContent=err.message}
-}
-if(order)receipt();else loadStore();
-</script></body></html>
+<script src="/assets/app.js" defer></script></body></html>

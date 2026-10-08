@@ -17,7 +17,7 @@ const sandbox = env.PAYFAST_MODE !== "live";
 const base = (env.PUBLIC_BASE_URL || "").replace(/\/$/, "");
 const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
-  ssl: env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
+  ssl: env.DATABASE_URL?.includes("sslmode=require") ? { rejectUnauthorized: true } : undefined,
   max: 8
 });
 const payfastHost = sandbox ? "sandbox.payfast.co.za" : "www.payfast.co.za";
@@ -324,6 +324,14 @@ async function handler(req,res) {
   try {
     const url=new URL(req.url || "/",base);
     const pathname=url.pathname;
+    if(req.method==="GET" && pathname==="/assets/app.js") {
+      res.writeHead(200,{"Content-Type":"text/javascript; charset=utf-8","Cache-Control":"public, max-age=3600","X-Content-Type-Options":"nosniff"});
+      return res.end(fs.readFileSync(path.join(here,"public","app.js"),"utf8"));
+    }
+    if(req.method==="GET" && pathname==="/assets/app.css") {
+      res.writeHead(200,{"Content-Type":"text/css; charset=utf-8","Cache-Control":"public, max-age=3600","X-Content-Type-Options":"nosniff"});
+      return res.end(fs.readFileSync(path.join(here,"public","app.css"),"utf8"));
+    }
     if(req.method==="GET" && pathname==="/health")
       return send(res,200,{ok:true,mode:sandbox?"sandbox":"live"});
     if(req.method==="GET" && (pathname==="/" || pathname==="/success" || /^\/s\/[a-z0-9-]+$/.test(pathname)))
