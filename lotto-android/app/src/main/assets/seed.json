@@ -1,0 +1,9 @@
+{
+  "data": [
+    {"game":"lotto","date":"2026-10-03","numbers":[7,18,25,36,40,44],"bonusBall":38,"verified":true},
+    {"game":"lotto-plus-1","date":"2026-10-03","numbers":[4,19,20,23,44,48],"bonusBall":27,"verified":true},
+    {"game":"powerball","date":"2026-10-06","numbers":[12,18,21,35,46],"bonusBall":10,"verified":true},
+    {"game":"powerball-plus","date":"2026-10-06","numbers":[2,9,23,25,36],"bonusBall":11,"verified":true},
+    {"game":"daily-lotto","date":"2026-10-07","numbers":[10,12,21,29,34],"bonusBall":null,"verified":true}
+  ]
+}
