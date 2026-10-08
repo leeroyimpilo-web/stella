@@ -37,7 +37,7 @@ private val Panel = Color(0xFF20232A)
 private val Muted = Color(0xFFB1B5BC)
 private val Green = Color(0xFF4BC69A)
 private val White = Color(0xFFF5F6F8)
-private val theme = darkColorScheme(
+private val lottoColorScheme = darkColorScheme(
     primary = Yellow, onPrimary = Background,
     secondary = Green, onSecondary = Background,
     background = Background, onBackground = White,
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
         val db = LottoDatabase(this)
         DrawSync.schedule(this)
         setContent {
-            MaterialTheme(colorScheme = theme) {
+            MaterialTheme(colorScheme = lottoColorScheme) {
                 LottoRoot(db)
             }
         }
