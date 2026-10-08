@@ -57,7 +57,8 @@ private class LicenseStorage(private val context: Context) {
         prefs.edit().putString("license_token", token).putString("retailer", retailer).apply()
     }
 
-    private fun verify(token: String, deviceHash: String, installationId: String): Boolean = try {
+    private fun verify(token: String, deviceHash: String, installationId: String): Boolean {
+        return try {
         if (BuildConfig.LICENSE_PUBLIC_KEY_B64.isBlank()) return false
         val pieces = token.split(".")
         if (pieces.size != 2) return false
@@ -73,7 +74,8 @@ private class LicenseStorage(private val context: Context) {
             payload.optString("deviceHash") == deviceHash &&
             payload.optString("installationId") == installationId &&
             payload.optString("licenseId").isNotBlank()
-    } catch (_: Exception) { false }
+        } catch (_: Exception) { false }
+    }
 }
 
 private suspend fun requestActivation(

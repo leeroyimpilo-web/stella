@@ -14,8 +14,8 @@ android {
         versionName = "0.2.0"
         val baseUrl = System.getenv("LOTTO_LICENSE_SERVER_URL") ?: "https://example.invalid"
         val publicKey = System.getenv("LOTTO_LICENSE_PUBLIC_KEY_B64") ?: ""
-        buildConfigField("String", "LICENSE_SERVER_URL", "\\\"${baseUrl}\\\"")
-        buildConfigField("String", "LICENSE_PUBLIC_KEY_B64", "\\\"${publicKey}\\\"")
+        buildConfigField("String", "LICENSE_SERVER_URL", "\"${baseUrl}\"")
+        buildConfigField("String", "LICENSE_PUBLIC_KEY_B64", "\"${publicKey}\"")
     }
     signingConfigs {
         create("retail") {
