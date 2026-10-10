@@ -67,8 +67,13 @@ jobs:
           script: |
             gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
             adb install -r app/build/outputs/apk/debug/app-debug.apk
-            adb shell monkey -p za.co.lottolab.probability -c android.intent.category.LAUNCHER 1
-            sleep 4
+            adb logcat -c
+            adb shell am force-stop za.co.lottolab.probability || true
+            adb shell am start -W -n za.co.lottolab.probability/za.co.lottolab.LobbyActivity || true
+            sleep 10
+            mkdir -p "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests"
+            adb logcat -d -v time | grep -iE 'FATAL|AndroidRuntime|lottolab|ActivityTaskManager|Compose|Exception' > "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests/startup-logcat.txt" || true
+            adb shell dumpsys activity activities > "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests/activities.txt"
             adb shell screencap -p /sdcard/lotto-lobby.png
             adb pull /sdcard/lotto-lobby.png "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests/lotto-lobby.png"
       - uses: actions/upload-artifact@v4
