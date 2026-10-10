@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d1d">
+  <title>Stella Rap Studio</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#f6f7ff;background:#080a15}
+    *{box-sizing:border-box} body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% 0,#4030786b,transparent 38%),radial-gradient(ellipse at 5% 70%,#063c7b66,transparent 45%),#080a15}
+    .wrap{max-width:960px;margin:0 auto;padding:36px 18px 70px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.logo{font-size:12px;font-weight:900;letter-spacing:4px;color:#c1afff}.chip{border:1px solid #3b4660;padding:9px 13px;border-radius:100px;font-size:12px;color:#b9c5e7}.chip.ready{border-color:#25bd9f;color:#78f5d2}
+    h1{font-size:clamp(36px,8vw,74px);line-height:1.02;letter-spacing:-3px;margin:38px 0 12px}h1 span{background:linear-gradient(90deg,#b3a1ff,#63f0e6);color:transparent;background-clip:text}.sub{font-size:16px;line-height:1.6;color:#aeb5ca;max-width:650px;margin-bottom:30px}
+    .shell{border:1px solid #30354e;border-radius:25px;padding:clamp(18px,4vw,30px);background:linear-gradient(135deg,#171c32ec,#121624e8);box-shadow:0 25px 80px #0008}label{display:block;color:#c7cee1;font-size:13px;font-weight:750;margin:18px 0 9px}input,textarea,select{width:100%;border:1px solid #3e4660;background:#0b1022;color:#fff;border-radius:13px;padding:15px;font:inherit;outline:none}input:focus,textarea:focus,select:focus{border-color:#b5a0fb}textarea{height:250px;resize:vertical;line-height:1.55}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:23px}
+    button,.download{border:0;border-radius:14px;padding:15px 20px;font-weight:800;cursor:pointer;font-size:14px}.primary{background:linear-gradient(100deg,#bca7ff,#64ead7);color:#0e1321;flex:1}.secondary{background:#292f46;color:#e5e8ff;border:1px solid #444962}button:disabled{opacity:.45;cursor:not-allowed}.status{padding:15px 18px;border-radius:12px;background:#11172a;color:#aab7d3;margin-top:15px;line-height:1.5}.out{display:none;margin-top:22px;border-radius:16px;background:#0d1326;padding:18px}.out audio{width:100%;margin-top:14px}.download{display:inline-block;color:#11182b;background:#8ce8cf;text-decoration:none;margin-top:12px}
+    .foot{margin-top:20px;color:#818daa;font-size:12px;line-height:1.6}strong{color:#ecedff}@media(max-width:560px){.two{grid-template-columns:1fr}h1{letter-spacing:-2px}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><div class="logo">✦ STELLA / RAP STUDIO</div><div class="chip" id="connection">Checking music engine…</div></div>
+  <h1>Your words.<br><span>Your sound.</span></h1>
+  <p class="sub">Create original rap tracks with your own lyrics. Preview a synthesized hip-hop beat for free, or connect an ACE-Step 1.5 music model to produce a complete AI-generated MP3.</p>
+  <section class="shell">
+    <label for="prompt">SOUND & STYLE</label>
+    <input id="prompt" value="South African motivational hip-hop, 94 BPM, hard 808 bass, crisp snares, atmospheric melodic piano, confident English rap vocals, big energetic hook, radio-ready studio production" maxlength="1600">
+    <div class="two">
+      <div><label for="bpm">BEATS PER MINUTE</label><input id="bpm" type="number" min="50" max="180" value="94"></div>
+      <div><label for="duration">SONG LENGTH</label><select id="duration"><option value="30">30 seconds</option><option value="60" selected>60 seconds</option><option value="90">90 seconds</option></select></div>
+    </div>
+    <label for="lyrics">ORIGINAL LYRICS</label>
+    <textarea id="lyrics">[Verse 1]
+They said slow down, I said watch me rise
+Rain on the roof but there's fire in my eyes
+Started with a dream and a cracked-up phone
+Now I make my moves, put the work in stone
+From the South Coast streets to a worldwide stage
+Every setback taught me how to turn the page
+No shortcuts here, just the grind and the spark
+Build it in daylight, keep it lit in the dark
+
+[Chorus]
+Built from nothing, now we make it loud
+Feet on the ground, heads up in the clouds
+Never stop moving, got the whole team strong
+We came from the quiet, now they sing along
+
+[Verse 2]
+Late nights coding till the first light breaks
+Turning small ideas into big-time stakes
+They saw one step, I could see the whole road
+Heavy on my shoulders but I carry that load
+I don't chase the noise, put my heart in the craft
+Turn a blank page into a future that will last
+Keep the doors open, bring the people with me
+One beat, one voice, that is the sound of free
+
+[Chorus]
+Built from nothing, now we make it loud
+Feet on the ground, heads up in the clouds
+Never stop moving, got the whole team strong
+We came from the quiet, now they sing along</textarea>
+    <div class="btns">
+      <button class="primary" id="generate">Generate AI rap song</button>
+      <button class="secondary" id="beat">▶ Preview beat</button>
+      <button class="secondary" id="copy">Copy lyrics</button>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite">Ready to compose.</div>
+    <div class="out" id="output"><strong>Your new song</strong><audio id="player" controls></audio><a id="download" class="download" download="rap-studio-song.mp3">Download MP3 ↓</a></div>
+  </section>
+  <p class="foot">Music-generation software is open-source, but hosting it requires CPU/GPU resources. The instrumental beat preview runs locally in your browser. This app never places API secrets in the browser.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id), status=msg=>$('status').textContent=msg;
+let configured=false, audioCtx=null, loopTimer=null;
+async function check(){
+ try{
+  const r=await fetch('/api/health');const d=await r.json();configured=!!d.online;
+  $('connection').textContent=configured?'● AI MUSIC ENGINE ONLINE':d.configured?'● MUSIC ENGINE OFFLINE':'○ MODEL SERVER NOT CONNECTED';
+  $('connection').classList.toggle('ready',configured);
+  $('generate').disabled=!configured;
+  if(!configured)status('Beat preview works now. To generate AI vocals, configure ACESTEP_URL on your music-studio server.');
+ }catch(e){status('Could not reach music studio backend: '+e.message);$('generate').disabled=true;}
+}
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+$('generate').onclick=async()=>{
+ $('generate').disabled=true;$('output').style.display='none';
+ try{
+  status('Sending track to the ACE-Step music model…');
+  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:$('prompt').value,lyrics:$('lyrics').value,duration:Number($('duration').value),bpm:Number($('bpm').value)})});
+  const d=await r.json();if(!r.ok)throw Error(d.error||'Could not start generation');
+  status('Generating vocals, drums and melody…');
+  let completed=false;
+  for(let i=0;i<90;i++){
+    await pause(4000);
+    const s=await fetch('/api/status?id='+encodeURIComponent(d.taskId));
+    const q=await s.json();
+    if(!s.ok)throw Error(q.error||'Status check failed');
+    if(q.status==='failed')throw Error(q.error||'Music generation failed');
+    if(q.status==='done'){
+      $('player').src=q.audio;$('download').href=q.audio;$('output').style.display='block';
+      status('Your song is ready. Press play or download the MP3.');
+      completed=true;break;
+    }
+    status('Creating your track… '+Math.round((i+1)*4)+' seconds elapsed');
+  }
+  if(!completed)throw Error('The model is still processing. Retry after checking the server.');
+ }catch(e){status(e.message)}finally{$('generate').disabled=!configured;}
+};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('lyrics').value);status('Lyrics copied.')}catch{status('Select and copy the lyrics manually.')}};
+const audioNoise=(ctx)=>{
+ const buffer=ctx.createBuffer(1,ctx.sampleRate*.22,ctx.sampleRate);const a=buffer.getChannelData(0);
+ for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;
+ return buffer;
+};
+function tone(ctx,time,freq,decay,gain,type='sine'){
+ const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,time);
+ if(freq<150)o.frequency.exponentialRampToValueAtTime(freq*.64,time+.12);
+ g.gain.setValueAtTime(gain,time);g.gain.exponentialRampToValueAtTime(.0001,time+decay);
+ o.connect(g).connect(ctx.destination);o.start(time);o.stop(time+decay+.02);
+}
+function noise(ctx,buf,time,decay,gain,highpass){
+ const src=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),g=ctx.createGain();src.buffer=buf;
+ hp.type='highpass';hp.frequency.value=highpass;
+ g.gain.setValueAtTime(gain,time);g.gain.exponentialRampToValueAtTime(.0001,time+decay);
+ src.connect(hp).connect(g).connect(ctx.destination);src.start(time);src.stop(time+decay+.01);
+}
+$('beat').onclick=()=>{
+ if(audioCtx){clearInterval(loopTimer);audioCtx.close();audioCtx=null;$('beat').textContent='▶ Preview beat';status('Beat stopped.');return;}
+ const ctx=new (window.AudioContext||window.webkitAudioContext)();audioCtx=ctx;
+ const buf=audioNoise(ctx),interval=60/Math.max(50,Math.min(180,Number($('bpm').value)||94));
+ let next=ctx.currentTime+.08, beat=0;
+ const tick=()=>{
+  while(next<ctx.currentTime+.35){
+   let step=beat%16;
+   if(step%4===0)tone(ctx,next,78,.24,.36);
+   if(step===4||step===12){noise(ctx,buf,next,.15,.17,800);tone(ctx,next,195,.1,.09,'triangle')}
+   if(step%2===0)noise(ctx,buf,next,.045,.055,5500);
+   if(step===0||step===6||step===11)tone(ctx,next,[49,43.65,41.2,46.25][Math.floor(beat/16)%4],.32,.12,'sawtooth');
+   next+=interval/4;beat++;
+  }
+ };
+ tick();loopTimer=setInterval(tick,85);$('beat').textContent='■ Stop beat';status('Previewing original synthesized hip-hop beat in your browser.');
+};
+check();
+</script>
+</body>
+</html>
