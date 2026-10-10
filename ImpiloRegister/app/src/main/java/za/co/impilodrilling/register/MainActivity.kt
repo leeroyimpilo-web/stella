@@ -4,6 +4,10 @@ class MainActivity:AppCompatActivity(){
  private val prefs by lazy{getSharedPreferences("impilo_register",MODE_PRIVATE)}
  private val staff=mutableListOf<String>()
  private val archived=mutableListOf<String>()
+ private val teams=mutableListOf<String>()
+ private val allTeam="__all__"
+ private val unassignedTeam="__unassigned__"
+ private var selectedTeamFilter="__all__"
  private val noteEdits=linkedMapOf<String,EditText>()
  private val originalNotes=linkedMapOf<String,String>()
  private lateinit var content:FrameLayout
@@ -35,6 +39,7 @@ class MainActivity:AppCompatActivity(){
   val td=today()
   val done=staff.count{!prefs.getString(key(it,td),"").isNullOrBlank()}
   card(r,"STAFF MEMBERS",staff.size.toString(),"Add, remove or restore workers"){showStaff()}
+  card(r,"TEAMS",teams.size.toString(),"Organise workers into separate teams"){showStaff()}
   card(r,"TODAY'S RECORDS",done.toString()+" / "+staff.size,"Workers with notes recorded today"){selectedDate=td;showRegister()}
   card(r,"DAILY REGISTER","OPEN CALENDAR","Update all workers for one date"){selectedDate=td;showRegister()}
   card(r,"COMBINED PDF","DAILY REPORT","One document containing all workers"){showRegister()}
@@ -42,8 +47,26 @@ class MainActivity:AppCompatActivity(){
  private fun showRegister(){
   screen="register";noteEdits.clear();originalNotes.clear()
   val r=base("Daily Register")
-  r.addView(tv("ONE CALENDAR · ALL WORKERS",12,true,green))
-  r.addView(tv("Choose a date, update each worker, then save all notes together.",14,false,muted).apply{setPadding(0,dp(6),0,dp(8))})
+  r.addView(tv("ONE CALENDAR · WORKERS BY TEAM",12,true,green))
+  r.addView(tv("Choose a team and date, then update every worker in that team.",14,false,muted).apply{setPadding(0,dp(6),0,dp(8))})
+  r.addView(tv("SELECT TEAM",12,true,muted))
+  val choices=listOf(allTeam)+teams+listOf(unassignedTeam)
+  val chooser=Spinner(this)
+  val teamAdapter=ArrayAdapter(this,android.R.layout.simple_spinner_item,choices.map{teamLabel(it)})
+  teamAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+  chooser.adapter=teamAdapter
+  if(selectedTeamFilter !in choices)selectedTeamFilter=allTeam
+  chooser.setSelection(choices.indexOf(selectedTeamFilter))
+  r.addView(chooser,LinearLayout.LayoutParams(-1,dp(52)))
+  chooser.onItemSelectedListener=object:AdapterView.OnItemSelectedListener{
+   var first=true
+   override fun onNothingSelected(parent:AdapterView<*>?){}
+   override fun onItemSelected(parent:AdapterView<*>?,view:View?,position:Int,id:Long){
+    if(first){first=false;return}
+    val next=choices[position]
+    if(next!=selectedTeamFilter)guard{selectedTeamFilter=next;showRegister()}
+   }
+  }
   val calendar=CalendarView(this)
   calendar.date=(SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(selectedDate)?:Date()).time
   r.addView(calendar,LinearLayout.LayoutParams(-1,dp(305)))
@@ -59,8 +82,15 @@ class MainActivity:AppCompatActivity(){
    r.addView(btn("+ ADD WORKER"){showStaff()})
    return
   }
-  r.addView(tv("WORKERS ("+staff.size+")",12,true,muted))
-  staff.toList().forEach{name->
+  val visible=sortedByTeam(staff.filter{matchesTeam(it)})
+  if(visible.isEmpty())r.addView(tv("No active workers in "+teamLabel(selectedTeamFilter)+". Assign workers in Staff Members.",15,false,muted))
+  r.addView(tv("WORKERS ("+visible.size+")",12,true,muted))
+  var currentGroup=""
+  visible.forEach{name->
+   if(selectedTeamFilter==allTeam&&teamFor(name)!=currentGroup){
+    currentGroup=teamFor(name)
+    r.addView(tv(if(currentGroup.isBlank())"UNASSIGNED" else currentGroup.uppercase(Locale.getDefault()),13,true,green).apply{setPadding(0,dp(13),0,dp(3))})
+   }
    val box=LinearLayout(this)
    box.orientation=LinearLayout.VERTICAL
    box.setPadding(dp(14),dp(12),dp(14),dp(14))
@@ -101,19 +131,43 @@ class MainActivity:AppCompatActivity(){
   r.addView(tv("Export saves the current day's notes first.",13,false,muted).apply{setPadding(0,dp(12),0,dp(3))})
   r.addView(btn("SAVE ONE PDF"){saveAll(false);createPdf()?.let{pendingPdf=it;savePdfLauncher.launch(it.name)}})
   r.addView(btn("SHARE ONE PDF"){saveAll(false);createPdf()?.let{sharePdf(it)}})
-  r.addView(btn("MANAGE WORKERS"){guard{showStaff()}})
+  r.addView(btn("MANAGE WORKERS AND TEAMS"){guard{showStaff()}})
  }
  private fun showStaff(){
   screen="staff";noteEdits.clear();originalNotes.clear()
-  val r=base("Staff Members")
-  r.addView(tv("ACTIVE WORKERS ("+staff.size+")",12,true,green))
+  val r=base("Workers & Teams")
+  r.addView(tv("TEAMS ("+teams.size+")",13,true,green))
+  r.addView(tv("Create teams, then assign each worker. Notes stay with the worker.",13,false,muted))
+  teams.toList().forEach{team->
+   val group=LinearLayout(this)
+   group.orientation=LinearLayout.VERTICAL
+   group.setPadding(dp(12),dp(10),dp(12),dp(10))
+   group.setBackgroundColor(Color.WHITE)
+   val count=staff.count{teamFor(it)==team}
+   group.addView(tv(team+" · "+count+" worker"+if(count==1)"" else "s",16,true,dark))
+   val actions=LinearLayout(this)
+   actions.orientation=LinearLayout.HORIZONTAL
+   actions.addView(btn("RENAME"){teamDialog(team)},LinearLayout.LayoutParams(0,-2,1f))
+   actions.addView(btn("REMOVE"){deleteTeam(team)},LinearLayout.LayoutParams(0,-2,1f))
+   group.addView(actions)
+   r.addView(group,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,dp(7),0,dp(2))})
+  }
+  r.addView(btn("+ ADD TEAM"){teamDialog(null)})
+  r.addView(tv("ACTIVE WORKERS ("+staff.size+")",13,true,green).apply{setPadding(0,dp(24),0,dp(6))})
   if(staff.isEmpty())r.addView(tv("No active workers. Add a worker to start.",15,false,muted))
-  staff.toList().forEach{name->
+  var currentGroup=""
+  sortedByTeam(staff).forEach{name->
+   val team=teamFor(name)
+   if(team!=currentGroup){
+    currentGroup=team
+    r.addView(tv(if(team.isBlank())"UNASSIGNED" else team.uppercase(Locale.getDefault()),12,true,muted).apply{setPadding(0,dp(12),0,dp(4))})
+   }
    val box=LinearLayout(this)
    box.orientation=LinearLayout.VERTICAL
    box.setPadding(dp(14),dp(12),dp(14),dp(12))
    box.setBackgroundColor(Color.WHITE)
    box.addView(tv(name,18,true,dark))
+   box.addView(btn("TEAM: "+if(team.isBlank())"Unassigned" else team){assignTeamDialog(name)})
    val actions=LinearLayout(this)
    actions.orientation=LinearLayout.HORIZONTAL
    actions.addView(btn("EDIT"){staffDialog(name)},LinearLayout.LayoutParams(0,-2,1f))
@@ -130,10 +184,107 @@ class MainActivity:AppCompatActivity(){
     row.orientation=LinearLayout.HORIZONTAL
     row.gravity=Gravity.CENTER_VERTICAL
     row.addView(tv(name,16,true,dark),LinearLayout.LayoutParams(0,-2,1f))
-    row.addView(btn("RESTORE"){archived.remove(name);staff.add(name);saveStaff();showStaff()})
+    row.addView(btn("RESTORE"){
+     archived.remove(name)
+     staff.add(name)
+     saveStaff()
+     showStaff()
+    })
     r.addView(row,LinearLayout.LayoutParams(-1,-2).apply{setMargins(0,dp(7),0,dp(5))})
    }
   }
+ }
+ private fun teamFor(name:String):String{
+  val value=prefs.getString("worker_team|"+name,"")?:""
+  return if(teams.contains(value))value else ""
+ }
+ private fun teamLabel(value:String)=when(value){
+  allTeam->"All Workers"
+  unassignedTeam->"Unassigned"
+  else->value
+ }
+ private fun matchesTeam(name:String)=when(selectedTeamFilter){
+  allTeam->true
+  unassignedTeam->teamFor(name).isBlank()
+  else->teamFor(name)==selectedTeamFilter
+ }
+ private fun sortedByTeam(names:List<String>):List<String>{
+  return teams.flatMap{team->names.filter{teamFor(it)==team}}+
+   names.filter{teamFor(it).isBlank()}
+ }
+ private fun saveTeams(){
+  val array=JSONArray()
+  teams.forEach{array.put(it)}
+  prefs.edit().putString("teams",array.toString()).apply()
+ }
+ private fun teamDialog(old:String?){
+  val input=EditText(this)
+  input.hint="Team name, e.g. Drilling Team A"
+  input.setSingleLine(true)
+  input.setTextColor(dark)
+  input.setText(old?:"")
+  val dialog=AlertDialog.Builder(this)
+   .setTitle(if(old==null)"ADD TEAM" else "RENAME TEAM")
+   .setView(input)
+   .setPositiveButton("SAVE",null)
+   .setNegativeButton("CANCEL",null)
+   .create()
+  dialog.setOnShowListener{
+   dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(green)
+   dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener{
+    val name=input.text.toString().trim()
+    when{
+     name.isEmpty()->msg("Enter a team name")
+     name.equals("All Workers",true)||name.equals("Unassigned",true)||
+      name==allTeam||name==unassignedTeam->msg("Choose a different team name")
+     teams.any{it.equals(name,true)&&it!=old}->msg("This team already exists")
+     else->{
+      if(old==null)teams.add(name)
+      else if(old!=name){
+       val pos=teams.indexOf(old)
+       if(pos>=0)teams[pos]=name
+       val editor=prefs.edit()
+       (staff+archived).filter{prefs.getString("worker_team|"+it,"")==old}
+        .forEach{editor.putString("worker_team|"+it,name)}
+       editor.apply()
+       if(selectedTeamFilter==old)selectedTeamFilter=name
+      }
+      saveTeams()
+      dialog.dismiss()
+      showStaff()
+     }
+    }
+   }
+  }
+  dialog.show()
+ }
+ private fun deleteTeam(name:String){
+  AlertDialog.Builder(this)
+   .setTitle("REMOVE TEAM?")
+   .setMessage("Remove "+name+"? Its workers become Unassigned. All worker notes stay saved.")
+   .setNegativeButton("CANCEL",null)
+   .setPositiveButton("REMOVE"){_,_->
+    val editor=prefs.edit()
+    (staff+archived).filter{prefs.getString("worker_team|"+it,"")==name}
+     .forEach{editor.remove("worker_team|"+it)}
+    editor.apply()
+    teams.remove(name)
+    if(selectedTeamFilter==name)selectedTeamFilter=allTeam
+    saveTeams()
+    showStaff()
+   }.show()
+ }
+ private fun assignTeamDialog(name:String){
+  val choices=listOf("")+teams
+  val labels=choices.map{if(it.isBlank())"Unassigned" else it}.toTypedArray()
+  val index=choices.indexOf(teamFor(name)).coerceAtLeast(0)
+  AlertDialog.Builder(this)
+   .setTitle("ASSIGN "+name.uppercase(Locale.getDefault()))
+   .setSingleChoiceItems(labels,index){dialog,which->
+    prefs.edit().putString("worker_team|"+name,choices[which]).apply()
+    dialog.dismiss()
+    showStaff()
+   }.setNegativeButton("CANCEL",null).show()
  }
  private fun staffDialog(old:String?){
   val input=EditText(this)
@@ -229,7 +380,7 @@ class MainActivity:AppCompatActivity(){
   return result
  }
  private fun createPdf():File?{
-  val people=(staff+archived.filter{prefs.contains(key(it,selectedDate))}).distinct()
+  val people=sortedByTeam((staff+archived.filter{prefs.contains(key(it,selectedDate))}).distinct().filter{matchesTeam(it)})
   if(people.isEmpty()){msg("Add a worker before exporting");return null}
   val doc=PdfDocument()
   try{
@@ -267,7 +418,9 @@ class MainActivity:AppCompatActivity(){
     paint.typeface=Typeface.DEFAULT
     paint.textSize=10f
     canvas!!.drawText(pretty(selectedDate),44f,y,paint)
-    y+=32f
+    y+=16f
+    canvas!!.drawText("Team: "+teamLabel(selectedTeamFilter),44f,y,paint)
+    y+=28f
    }
    fun writeLine(text:String,size:Float=11f,bold:Boolean=false,color:Int=dark,gap:Float=7f){
     if(y+size+gap>785f)nextPage()
@@ -281,7 +434,14 @@ class MainActivity:AppCompatActivity(){
    val completed=people.count{!prefs.getString(key(it,selectedDate),"").isNullOrBlank()}
    writeLine("Workers: "+people.size+"     Notes entered: "+completed,11f,true)
    y+=12f
+   var group=""
    people.forEachIndexed{index,name->
+    val workerTeam=teamFor(name)
+    if(selectedTeamFilter==allTeam&&workerTeam!=group){
+     group=workerTeam
+     if(y+70f>785f)nextPage()
+     writeLine(if(group.isBlank())"UNASSIGNED" else group.uppercase(Locale.getDefault()),12f,true,muted,12f)
+    }
     if(y+55f>785f)nextPage()
     writeLine((index+1).toString()+". "+name,13f,true,green,9f)
     val notes=prefs.getString(key(name,selectedDate),"")?:""
@@ -300,7 +460,8 @@ class MainActivity:AppCompatActivity(){
    finishPage()
    val folder=File(cacheDir,"reports")
    folder.mkdirs()
-   val file=File(folder,"Impilo_Daily_Register_"+selectedDate+".pdf")
+   val safeTeam=teamLabel(selectedTeamFilter).replace(Regex("[^A-Za-z0-9]+"),"_").trim('_')
+   val file=File(folder,"Impilo_Daily_Register_"+safeTeam+"_"+selectedDate+".pdf")
    file.outputStream().use{doc.writeTo(it)}
    return file
   }catch(e:Exception){
@@ -319,7 +480,18 @@ class MainActivity:AppCompatActivity(){
    startActivity(Intent.createChooser(share,"Share daily register PDF"))
   }catch(e:Exception){msg("Unable to share PDF")}
  }
- private fun migrate(old:String,new:String){val e=prefs.edit();prefs.all.filterKeys{it.startsWith("note|"+old+"|")}.forEach{(k,v)->e.putString(k.replaceFirst("note|"+old+"|","note|"+new+"|"),v as? String?);e.remove(k)};e.apply()}
+ private fun migrate(old:String,new:String){
+  if(old==new)return
+  val e=prefs.edit()
+  prefs.all.filterKeys{it.startsWith("note|"+old+"|")}.forEach{(k,v)->
+   e.putString(k.replaceFirst("note|"+old+"|","note|"+new+"|"),v as? String?)
+   e.remove(k)
+  }
+  val team=prefs.getString("worker_team|"+old,"")?:""
+  if(team.isNotBlank())e.putString("worker_team|"+new,team)
+  e.remove("worker_team|"+old)
+  e.apply()
+ }
  private fun key(n:String,d:String)="note|"+n+"|"+d;private fun today()=SimpleDateFormat("yyyy-MM-dd",Locale.US).format(Date());private fun pretty(d:String)=SimpleDateFormat("EEEE, d MMMM yyyy",Locale.getDefault()).format(SimpleDateFormat("yyyy-MM-dd",Locale.US).parse(d)?:Date())
  private fun loadStaff(){
   staff.clear();archived.clear()
@@ -327,6 +499,9 @@ class MainActivity:AppCompatActivity(){
   for(i in 0 until active.length())staff.add(active.getString(i))
   val inactive=JSONArray(prefs.getString("archived_staff","[]"))
   for(i in 0 until inactive.length())if(!staff.contains(inactive.getString(i)))archived.add(inactive.getString(i))
+  teams.clear()
+  val savedTeams=JSONArray(prefs.getString("teams","[]"))
+  for(i in 0 until savedTeams.length())teams.add(savedTeams.getString(i))
  }
  private fun saveStaff(){
   val active=JSONArray();staff.forEach{active.put(it)}
