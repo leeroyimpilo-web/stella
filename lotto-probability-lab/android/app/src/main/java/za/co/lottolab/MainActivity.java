@@ -51,6 +51,17 @@ public class MainActivity extends Activity {
             }catch(IOException e){return blocked();}
         }).build();
         web.setWebViewClient(new WebViewClient(){
+            @Override public void onPageFinished(WebView view,String url){
+                super.onPageFinished(view,url);
+                String tab=getIntent().getStringExtra("lotto_tab");
+                String game=getIntent().getStringExtra("lotto_game");
+                if(tab!=null || game!=null){
+                    String t=tab!=null?tab:"numbers";
+                    String g=game!=null?game:"";
+                    String call="window.lottoOpen("+JSONObject.quote(t)+","+JSONObject.quote(g)+")";
+                    view.evaluateJavascript("(function(){if(window.lottoOpen){"+call+";}else{window.addEventListener('lotto-ready',function(){"+call+";},{once:true});}})()",null);
+                }
+            }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest req){WebResourceResponse response=loader.shouldInterceptRequest(req.getUrl());return response!=null?response:blocked();}
             @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){Uri u=request.getUrl();if(isLocal(u))return false;if(request.isForMainFrame()&&"https".equals(u.getScheme())){try{startActivity(new Intent(Intent.ACTION_VIEW,u));}catch(Exception e){message("No browser is available to open this link.");}}return true;}
         });

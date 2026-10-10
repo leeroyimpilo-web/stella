@@ -32,3 +32,12 @@ try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(r
 
 window.onNativePdfSaved=message=>notice(message);
 window.lottoBack=()=>{if(activeTab!=='numbers'){switchTab('numbers');return true;}return false;};
+
+window.lottoOpen=(tab,id)=>{
+    if([...GAMES,...legacy].some(g=>g.id===id)){
+        $('game').value=id;
+        gameChange();
+    }
+    switchTab(tab);
+};
+window.dispatchEvent(new Event('lotto-ready'));
