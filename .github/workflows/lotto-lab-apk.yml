@@ -66,7 +66,8 @@ jobs:
           working-directory: lotto-probability-lab/android
           script: |
             gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
-            adb shell am start -n za.co.lottolab.probability/za.co.lottolab.LobbyActivity
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell monkey -p za.co.lottolab.probability -c android.intent.category.LAUNCHER 1
             sleep 4
             adb shell screencap -p /sdcard/lotto-lobby.png
             adb pull /sdcard/lotto-lobby.png "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests/lotto-lobby.png"
