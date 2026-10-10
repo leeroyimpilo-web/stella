@@ -69,7 +69,7 @@ jobs:
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb logcat -c
             adb shell am force-stop za.co.lottolab.probability || true
-            adb shell am start -W -n za.co.lottolab.probability/za.co.lottolab.LobbyActivity || true
+            timeout 15s adb shell am start -n za.co.lottolab.probability/za.co.lottolab.LobbyActivity || true
             sleep 10
             mkdir -p "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests"
             adb logcat -d -v time | grep -iE 'FATAL|AndroidRuntime|lottolab|ActivityTaskManager|Compose|Exception' > "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests/startup-logcat.txt" || true
