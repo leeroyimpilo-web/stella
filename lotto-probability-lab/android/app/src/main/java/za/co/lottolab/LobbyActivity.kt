@@ -40,7 +40,7 @@ class LobbyActivity : ComponentActivity() {
  }
 }
 
-internal enum class GamePick(val id:String,val count:Int,val max:Int,val cost:Int) {
+enum class GamePick(val id:String,val count:Int,val max:Int,val cost:Int) {
  LOTTO("lotto",6,52,5), DAILY("daily",5,36,3), POWER("power",5,50,10)
 }
 

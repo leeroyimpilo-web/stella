@@ -1,0 +1,70 @@
+/* Lotto Lab premium studio: independent CSS layer, no changes to probability logic */
+:root{--bg:#061a2a;--ink:#f2f8ff;--muted:#bdd2e0;--line:rgba(255,215,108,.28);--lime:#ffd352;--dark:#051622;--white:#fff;--green:#11d875}
+body{background:radial-gradient(ellipse at 92% 5%,rgba(27,113,163,.28),transparent 45%),radial-gradient(ellipse at 7% 60%,rgba(8,139,74,.23),transparent 55%),linear-gradient(155deg,#061a2c,#043b3b 58%,#050f20);color:#f2f8ff}
+.sidebar{background:linear-gradient(155deg,#092f37,#031421 78%);border-right:1px solid rgba(255,217,96,.38);box-shadow:0 0 32px rgba(255,190,40,.1)}
+.brand{color:#fff;text-shadow:0 1px 15px rgba(255,213,86,.3)}
+.brand .light{color:#ffd352;font-weight:700}
+.logo{background:linear-gradient(145deg,#fff3b0,#ffd352 46%,#ac6514);color:#092234;border-radius:12px;box-shadow:0 0 18px #d8a32a6b}
+.brand small,.side-label,.side-bottom small{color:#9bb8c6}
+.nav{color:#b5cddd}
+.nav.active,.nav:hover{background:linear-gradient(110deg,rgba(12,151,83,.32),rgba(33,114,167,.28));color:#ffe58b;border:1px solid rgba(255,218,115,.30);box-shadow:inset 0 1px rgba(255,255,255,.13)}
+.nav b{background:rgba(255,219,113,.19);color:#ffe2a4}
+.side-bottom,.side-bottom p{color:#daeaf5}
+.topbar{border-bottom-color:var(--line)}
+.breadcrumb,.breadcrumb span,.private-badge,.breadcrumb i{color:#b8cedc}
+.page-heading h1{color:#fff;font-weight:800;text-shadow:0 2px 16px rgba(0,0,0,.3)}
+.page-heading h1 em{color:#ffd352;font-weight:700}
+.page-heading p,.section-intro p,.selection-meta{color:#bfd4e0}
+.eyebrow,.tiny{color:#ffd677}
+.panel,.saved-card,.empty{background:linear-gradient(145deg,rgba(28,108,96,.45),rgba(6,35,54,.96) 58%,rgba(3,23,38,.96));border:1px solid rgba(255,213,104,.39);border-radius:19px;box-shadow:0 10px 32px #0005,inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(12px)}
+.panel h2,.panel h3,.section-intro h2{color:#fff}
+.panel-heading .step{border-color:#ffd352;color:#ffd352}
+label,summary{color:#d7e4ec}
+.help,.selection-meta,.insight p,.insight strong,.stats-strip small,.stats-strip span,.board-number,.board-note{color:#adcbd5}
+input,select,textarea{color:#f0f9ff;background:rgba(3,27,43,.85);border:1px solid rgba(121,191,199,.43);border-radius:10px}
+input::placeholder,textarea::placeholder{color:#7799ac}
+input:focus,select:focus,textarea:focus{outline-color:#ffd352}
+input[type=checkbox]{accent-color:#17df85}
+.button{border-radius:30px;min-height:43px;transition:transform .14s,filter .14s;box-shadow:inset 0 1px rgba(255,255,255,.12)}
+.button:hover{filter:brightness(1.09)}
+.button:active{transform:translateY(2px) scale(.99)}
+.primary{background:linear-gradient(180deg,#fff4b1,#ffd352 48%,#ba7e12);color:#0b2533;border:1px solid #ffe8a2;box-shadow:0 6px 20px rgba(255,186,51,.32),inset 0 2px #fff5cf}
+.primary:hover{background:linear-gradient(180deg,#fff8ca,#ffe183 48%,#ce941f)}
+.secondary{background:linear-gradient(135deg,rgba(20,99,106,.83),rgba(5,47,69,.93));color:#f2f8ff;border:1px solid rgba(138,205,208,.5)}
+.secondary:hover{background:linear-gradient(135deg,rgba(30,126,121,.85),rgba(15,68,93,.93))}
+.ghost,.text-button,.sources a{color:#ffe297}
+.button:focus-visible,.nav:focus-visible{outline-color:#ffd352}
+.ball{width:43px;height:43px;flex-shrink:0;border:1px solid #e2f9ffb8;color:#0b1721;font-size:15px;font-weight:900;border-radius:50%;background:radial-gradient(circle at 31% 22%,#fff 0%,#c9fbd9 12%,#1ce975 33%,#06a357 65%,#006239 100%);box-shadow:inset -5px -6px 9px #00281980,inset 3px 5px 8px #fff9,0 4px 14px #03ca7166;position:relative;text-shadow:0 1px #fff}
+.ball:before{content:"";position:absolute;inset:19%;background:linear-gradient(#fff,#d9e5ef);border-radius:50%;border:1px solid #182f3a47;z-index:0}
+.ball{isolation:isolate}.ball:before{z-index:-1}
+.balls .ball:nth-child(3n+2){background:radial-gradient(circle at 31% 22%,#fff 0%,#bed9ff 12%,#268eff 35%,#075abe 70%,#03275c);box-shadow:inset -4px -6px 8px #031a5080,inset 3px 5px 8px #fff9,0 4px 14px #1c7aff7a}
+.balls .ball:nth-child(3n){background:radial-gradient(circle at 31% 22%,#fff 0%,#ffec9c 12%,#ffd352 35%,#db9309 70%,#865100);box-shadow:inset -4px -6px 8px #532c0080,inset 3px 5px 8px #fff9,0 4px 14px #e5a9367a}
+.balls .ball.extra{background:radial-gradient(circle at 31% 22%,#fff,#fbefb3 20%,#ffd352 45%,#895900)}
+.ball-plus{color:#ffe393}
+.board{border-bottom-color:rgba(255,233,164,.18)}
+.stats-strip{background:linear-gradient(130deg,rgba(9,99,69,.50),rgba(4,44,70,.9));border-color:rgba(255,208,82,.44);border-radius:18px}
+.stats-strip>div{border-color:rgba(255,214,92,.2)}
+.stats-strip strong,.metric-note,.analysis-result strong{color:#ffe292}
+.pill{background:rgba(255,213,82,.15);color:#ffe391;border:1px solid rgba(255,211,82,.6)}
+.insight{border-color:rgba(255,215,107,.3);background:rgba(2,43,53,.48)}
+.insight strong{color:#e8f6ff}
+.metric-note,.notice{background:rgba(10,104,84,.48);border:1px solid rgba(41,209,152,.5);color:#d8fff0}
+.notice.error{background:#49291b;color:#ffe2bd;border-color:#ce815c}
+table th,table td{color:#dceef5;border-bottom-color:rgba(255,255,255,.12)}
+.heat-cell{background:rgba(11,58,72,.8);color:#b4cede}
+.heat-cell.used{background:linear-gradient(135deg,#166f58,#1aa686);color:white}
+.history-bar b{background:linear-gradient(90deg,#16cb87,#ffdd58)}
+footer{color:#9bbed2;border-color:var(--line)}
+@media(max-width:700px){
+ .sidebar{background:linear-gradient(135deg,#082c35,#051827);border-top:1px solid rgba(255,211,95,.45);box-shadow:0 -5px 25px #0009}
+ main{padding-bottom:84px}
+ .nav.active{border:0;border-top:2px solid #ffd352}
+ .page-heading{padding-top:26px}
+ .panel{border-radius:18px}
+ .board{flex-wrap:wrap}
+ .balls{gap:5px}
+ .ball{width:39px;height:39px;font-size:13px}
+ .stats-strip{grid-template-columns:1fr 1fr 1fr}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{body,main,.panel,.stats-strip{background:#fff!important;color:#182a28!important;box-shadow:none!important}.panel h2,.panel h3{color:#182a28}}

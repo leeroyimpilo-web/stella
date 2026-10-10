@@ -64,7 +64,12 @@ jobs:
           arch: x86_64
           disable-animations: true
           working-directory: lotto-probability-lab/android
-          script: gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
+          script: |
+            gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
+            adb shell am start -n za.co.lottolab.probability/za.co.lottolab.LobbyActivity
+            sleep 4
+            adb shell screencap -p /sdcard/lotto-lobby.png
+            adb pull /sdcard/lotto-lobby.png "$GITHUB_WORKSPACE/lotto-probability-lab/android/app/build/reports/androidTests/lotto-lobby.png"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

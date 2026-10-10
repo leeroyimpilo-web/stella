@@ -50,7 +50,7 @@ internal val Navy = Color(0xFF061625)
  .border(.5.dp,Color.Black.copy(alpha=.3f),CircleShape),contentAlignment=Alignment.Center) {
  Text(number.toString(),fontSize=(size.value*.32f).sp,fontWeight=FontWeight.Black,color=Navy,maxLines=1)
  }
- Canvas(Modifier.fillMaxSize()){drawArc(Color.White.copy(alpha=.62f),205f,85f,false,Offset(size.width*.12f,size.height*.09f),Size(size.width*.73f,size.height*.38f),style=Stroke(width=size.width*.058f))}
+ Canvas(Modifier.fillMaxSize()){val canvasSize=this.size;drawArc(Color.White.copy(alpha=.62f),205f,85f,false,Offset(canvasSize.width*.12f,canvasSize.height*.09f),Size(canvasSize.width*.73f,canvasSize.height*.38f),style=Stroke(width=canvasSize.width*.058f))}
  }
 }
 
