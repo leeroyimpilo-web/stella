@@ -310,7 +310,7 @@ class MainActivity:AppCompatActivity(){
  }
  private fun sharePdf(file:File){
   try{
-   val uri=FileProvider.getUriForFile(this,"za.co.impilodrilling.register.provider",file)
+   val uri=FileProvider.getUriForFile(this,packageName+".provider",file)
    val share=Intent(Intent.ACTION_SEND).apply{
     type="application/pdf"
     putExtra(Intent.EXTRA_STREAM,uri)
