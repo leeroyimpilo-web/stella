@@ -1,0 +1,22 @@
+name: Rap Studio smoke test
+on:
+  push:
+    paths:
+      - 'rap-studio/**'
+      - '.github/workflows/rap-studio-check.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax
+        run: node --check server.js && node --check test.js
+        working-directory: rap-studio
+      - name: Run mocked ACE-Step integration test
+        run: node test.js
+        working-directory: rap-studio
