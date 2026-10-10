@@ -27,10 +27,11 @@ public class OfflineSmokeTest {
             js(a,"document.getElementById('analyze').click()");waitJs(a,"document.getElementById('analysisResult').querySelector('strong')!==null");
             js(a,"document.getElementById('generateAll').click()");waitJs(a,"document.querySelectorAll('.board').length===30");
             assertEquals("true",js(a,"document.getElementById('selectionTitle').textContent==='All South African games'"));
-            Instrumentation.ActivityMonitor monitor=inst.addMonitor(new IntentFilter(Intent.ACTION_CREATE_DOCUMENT),new Instrumentation.ActivityResult(Activity.RESULT_CANCELED,null),true);
+            IntentFilter pdfFilter=new IntentFilter(Intent.ACTION_CREATE_DOCUMENT);pdfFilter.addCategory(Intent.CATEGORY_OPENABLE);pdfFilter.addDataType("application/pdf");
+            Instrumentation.ActivityMonitor monitor=inst.addMonitor(pdfFilter,new Instrumentation.ActivityResult(Activity.RESULT_CANCELED,null),true);
             js(a,"document.getElementById('export').click()");
             for(int i=0;i<40&&monitor.getHits()==0;i++)Thread.sleep(250);
-            assertTrue("PDF export should open Android Save As",monitor.getHits()>0);inst.removeMonitor(monitor);
+            assertTrue("PDF export should open Android Save As; notice="+js(a,"document.getElementById('notice').textContent"),monitor.getHits()>0);inst.removeMonitor(monitor);
             waitJs(a,"document.getElementById('notice').textContent.includes('cancelled')");
         }finally{inst.runOnMainSync(a::finish);}
     }
