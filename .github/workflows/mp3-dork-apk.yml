@@ -70,8 +70,8 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p mp3-apk-output
-          cp mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk mp3-apk-output/MP3Dork-1.0.apk
-          sha256sum mp3-apk-output/MP3Dork-1.0.apk > mp3-apk-output/SHA256SUMS.txt
+          cp mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk mp3-apk-output/MP3Dork-1.1.apk
+          sha256sum mp3-apk-output/MP3Dork-1.1.apk > mp3-apk-output/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: MP3Dork-APK

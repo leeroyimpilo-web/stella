@@ -1,6 +1,7 @@
 """Controlled, generated audio for download and playback smoke tests."""
 import base64
 import gzip
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -11,6 +12,16 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split('?', 1)[0]
         if path == '/health':
             body, mime = b'ok', 'text/plain'
+        elif path == '/links':
+            body, mime = b'<!doctype html><a id="track" href="/no-probe.mp3?browser=1">Download track.mp3</a>', 'text/html'
+        elif path == '/no-probe.mp3':
+            if self.headers.get('Range'):
+                self.send_error(403, 'Audio preflight requests are not supported')
+                return
+            body, mime = AUDIO, 'audio/mpeg'
+        elif path == '/slow.mp3':
+            time.sleep(20)
+            body, mime = AUDIO, 'audio/mpeg'
         elif path == '/fake.mp3':
             body, mime = b'<!doctype html><title>Sign in</title>', 'text/html'
         elif path == '/disguised.mp3':
