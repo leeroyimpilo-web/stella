@@ -130,7 +130,7 @@ public final class MainActivity extends Activity {
     void selectTab(int index) {
         saveDraft(); tab = index; browserVisible = false; body.removeAllViews(); downloadRows.clear(); nav.removeAllViews();
         String[] names = {"Search","Downloads","Library","Settings"}; String[] symbols = {"⌕","↓","♫","⚙"};
-        for (int i=0;i<4;i++) { final int choice=i; Button b=ghost(symbols[i]+"\n"+names[i]); b.setTextSize(12); b.setTextColor(tab == i ? ACCENT : MUTED); if (tab == i) b.setBackground(shape(CARD,13)); nav.addView(b,new LinearLayout.LayoutParams(0,dp(59),1)); b.setContentDescription(names[i]); b.setOnClickListener(v -> selectTab(choice)); }
+        for (int i=0;i<4;i++) { final int choice=i; Button b=ghost(symbols[i]+"\n"+names[i]); b.setTextSize(12); b.setPadding(dp(2),dp(4),dp(2),dp(4)); b.setMaxLines(2); b.setTextColor(tab == i ? ACCENT : MUTED); if (tab == i) b.setBackground(shape(CARD,13)); nav.addView(b,new LinearLayout.LayoutParams(0,dp(59),1)); b.setContentDescription(names[i]); b.setOnClickListener(v -> selectTab(choice)); }
         if (index==0) renderSearch(); else if (index==1) renderDownloads(); else if (index==2) renderLibrary(); else renderSettings();
     }
     private void saveDraft() {
