@@ -35,8 +35,14 @@ jobs:
       - name: Restore development signing key
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: mp3-dork-debug-signing-v1
+          path: ~/.android/mp3-dork-direct.keystore
+          key: mp3-dork-direct-signing-v1
+      - name: Ensure the development signing key exists
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/mp3-dork-direct.keystore" ]; then
+            keytool -genkeypair -keystore "$HOME/.android/mp3-dork-direct.keystore" -storetype JKS -storepass android -keypass android -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
       - name: Compile APK and run core tests
         working-directory: mp3-dork-app
         run: gradle :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon --stacktrace
@@ -60,7 +66,7 @@ jobs:
           script: |
             adb reverse tcp:8765 tcp:8765
             adb install -r app/build/outputs/apk/debug/app-debug.apk
-            adb shell pm grant za.co.mp3dork android.permission.POST_NOTIFICATIONS
+            adb shell pm grant za.co.mp3dork.direct android.permission.POST_NOTIFICATIONS
             gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
             mkdir -p qa-output
             adb pull /sdcard/Pictures/MP3DorkQA qa-output/screenshots
@@ -70,8 +76,8 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk
           mkdir -p mp3-apk-output
-          cp mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk mp3-apk-output/MP3Dork-1.1.apk
-          sha256sum mp3-apk-output/MP3Dork-1.1.apk > mp3-apk-output/SHA256SUMS.txt
+          cp mp3-dork-app/app/build/outputs/apk/debug/app-debug.apk mp3-apk-output/MP3Dork-Direct-1.1.apk
+          sha256sum mp3-apk-output/MP3Dork-Direct-1.1.apk > mp3-apk-output/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: MP3Dork-APK

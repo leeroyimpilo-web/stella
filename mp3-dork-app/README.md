@@ -1,6 +1,8 @@
-# MP3 Dork for Android
+# MP3 Dork Direct for Android
 
-A native Android app for Google MP3 searches, source browsing, direct audio downloads, saved links and offline listening. Android 8.0 and newer. Package: `za.co.mp3dork`.
+A native Android app for Google MP3 searches, source browsing, direct audio downloads, saved links and offline listening. Android 8.0 and newer. Package: `za.co.mp3dork.direct`.
+
+Version 1.1 installs alongside the original MP3 Dork. The original development build did not retain its signing key, so it cannot be replaced with a compatible signed update. The old app, its saved links, and its downloaded files remain available.
 
 ## Features
 
@@ -24,12 +26,12 @@ Download retries/resumption are managed by Android and depend on source support.
 
 ## Build
 
-Use Java 17, Gradle 8.9 and Android SDK 35:
+Use Java 17, Gradle 8.9 and Android SDK 35. The workflow generates and caches `~/.android/mp3-dork-direct.keystore`; for a local build, create that development key with alias `androiddebugkey` and store/key password `android` first:
 
 ```sh
 gradle :app:testDebugUnitTest :app:assembleDebug
 ```
 
-The repository workflow `.github/workflows/mp3-dork-apk.yml` runs core tests and an API 35 emulator smoke test. The smoke test checks navigation, genuine MP3 validation, rejection of disguised HTML, a real DownloadManager transfer, immediate download without a probe, responsive navigation with a stalled source, record persistence and offline/background playback against a controlled fixture server. It then verifies the APK certificate and uploads `MP3Dork-1.1.apk`.
+The repository workflow `.github/workflows/mp3-dork-apk.yml` runs core tests and an API 35 emulator smoke test. The smoke test checks navigation, genuine MP3 validation, rejection of disguised HTML, a real DownloadManager transfer, immediate download without a probe, responsive navigation with a stalled source, record persistence and offline/background playback against a controlled fixture server. It then verifies the APK certificate and uploads `MP3Dork-Direct-1.1.apk`.
 
 The artifact is development-signed for direct installation. The signing key is retained in the workflow cache, not in source control. A separately secured release key is needed for formal distribution and a guaranteed signing identity after cache expiry.
