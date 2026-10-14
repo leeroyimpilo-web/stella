@@ -63,7 +63,7 @@ jobs:
             adb shell pm grant za.co.mp3dork android.permission.POST_NOTIFICATIONS
             gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace
             mkdir -p qa-output
-            adb pull /sdcard/Android/data/za.co.mp3dork/files/qa qa-output/ || true
+            adb pull /sdcard/Pictures/MP3DorkQA qa-output/screenshots
             adb logcat -d -v time > qa-output/device-log.txt
       - name: Verify signing certificate and package
         run: |
