@@ -11,6 +11,16 @@ android {
         testInstrumentationRunner 'za.co.lottolab.studio.SmokeInstrumentation'
     }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    signingConfigs {
+        debug {
+            if (System.getenv('LOTTOLAB_KEYSTORE')) {
+                storeFile file(System.getenv('LOTTOLAB_KEYSTORE'))
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
+    }
     buildTypes { release { minifyEnabled false } }
     lint { abortOnError true; disable 'ObsoleteSdkInt', 'SetTextI18n', 'MissingTranslation' }
     testOptions { unitTests.returnDefaultValues = true }

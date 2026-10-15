@@ -13,6 +13,8 @@ jobs:
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      LOTTOLAB_KEYSTORE: ${{ runner.temp }}/lottolab-signing/preview.keystore
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
@@ -26,17 +28,31 @@ jobs:
         run: |
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools'
       - name: Retain preview signing identity
-        uses: actions/cache@v4
+        id: signing
+        uses: actions/cache/restore@v4
         with:
-          path: ~/.android/debug.keystore
-          key: lottolab-next-preview-signing-v1
+          path: ${{ env.LOTTOLAB_KEYSTORE }}
+          key: lottolab-next-preview-signing-v2
+      - name: Prepare persistent development signer
+        run: |
+          mkdir -p "$(dirname "$LOTTOLAB_KEYSTORE")"
+          if [ ! -f "$LOTTOLAB_KEYSTORE" ]; then
+            keytool -genkeypair -noprompt -keystore "$LOTTOLAB_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname 'CN=LottoLab Preview, O=LottoLab, C=ZA'
+          fi
+      - name: Save development signer before tests
+        if: steps.signing.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.LOTTOLAB_KEYSTORE }}
+          key: lottolab-next-preview-signing-v2
       - name: Unit tests, lint and APK builds
         run: gradle --no-daemon -p lottolab-next :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
       - name: Verify installable APK signing
         run: |
           mkdir -p lottolab-next/qa
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs lottolab-next/app/build/outputs/apk/debug/app-debug.apk > lottolab-next/qa/apk-verification.txt
-          grep -Fq 'certificate SHA-256 digest: 6b28c9e10c6395bd11d51935d51d127bfa716edab1ab90315f4704257d4d4d85' lottolab-next/qa/apk-verification.txt
+          expected=$(keytool -exportcert -keystore "$LOTTOLAB_KEYSTORE" -storepass android -alias androiddebugkey | sha256sum | cut -d' ' -f1)
+          grep -Fq "certificate SHA-256 digest: $expected" lottolab-next/qa/apk-verification.txt
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

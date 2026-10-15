@@ -7,4 +7,5 @@
 - Added constrained unique generation, full systems, coverage, pair/triple searches, gaps, patterns, odds and simulations.
 - Added dated ticket snapshots, purchase-month spending, notes, backup/merge restore and native sharing.
 - Retained the original package and introduced a non-destructive database migration.
+- Corrected development signing-key retention; the unavailable 0.1 private key prevents an in-place preview update.
 - Kept the official live-feed and verified prize-payout limitations visible in the app.
