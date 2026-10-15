@@ -44,10 +44,11 @@ public final class AnalysisEngine {
 
   public static Result analyse(Entry e, List<Draw> draws) {
     int count = 0, full = 0, contains = 0, power = 0, best = 0;
-    int[] dist = new int[e.numbers.length + 1], freq = new int[e.game.pool + 1];
+    int[] dist = new int[e.numbers.length + 1], freq = new int[59];
     List<Draw> matching = new ArrayList<>();
     for (Draw d : draws) {
       if (d.game != e.game) continue;
+      if (!d.ruleId.equals(e.ruleId)) continue;
       count++;
       int hit = matches(e.numbers, d.numbers);
       dist[hit]++;

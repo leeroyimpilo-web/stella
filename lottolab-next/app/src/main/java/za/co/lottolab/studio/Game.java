@@ -9,7 +9,10 @@ public enum Game {
   MAX5("LOTTO 5 MAX", "5 Max", 6, 52, 0, 250, 1000, "Wed & Sat"),
   POWERBALL("POWERBALL", "PowerBall", 5, 50, 16, 1000, 1000, "Tue & Fri"),
   XTRA("POWERBALL XTRA", "PB Xtra", 5, 50, 16, 500, 1500, "Tue & Fri"),
-  DAILY("DAILY LOTTO", "Daily Lotto", 5, 36, 0, 300, 300, "Daily");
+  DAILY("DAILY LOTTO", "Daily Lotto", 5, 36, 0, 300, 300, "Daily"),
+  PLUS2("LOTTO PLUS 2", "Plus 2 · archive", 6, 58, 0, 250, 1000, "Wed & Sat"),
+  POWERPLUS("POWERBALL PLUS", "PB Plus · archive", 5, 50, 20, 250, 750, "Tue & Fri"),
+  DAILYPLUS("DAILY LOTTO PLUS", "Daily Plus · archive", 5, 36, 0, 150, 450, "Daily");
   public final String title, shortName, days;
   public final int picks, pool, powerPool, ownCostCents, bundleCostCents;
 
@@ -40,9 +43,19 @@ public enum Game {
     return picks == 6;
   }
 
+  public boolean active() {
+    return ordinal() < 6;
+  }
+
+  public static Game[] current() {
+    return new Game[] {LOTTO, PLUS1, MAX5, POWERBALL, XTRA, DAILY};
+  }
+
   public boolean scheduled(LocalDate d) {
     DayOfWeek w = d.getDayOfWeek();
+    if (d.getMonthValue() == 12 && d.getDayOfMonth() == 25) return false;
     return this == DAILY
+        || this == DAILYPLUS
         || (hasBonus()
             ? w == DayOfWeek.WEDNESDAY || w == DayOfWeek.SATURDAY
             : w == DayOfWeek.TUESDAY || w == DayOfWeek.FRIDAY);
@@ -63,6 +76,9 @@ public enum Game {
             .replace('-', ' ')
             .replaceAll("\\s+", " ");
     for (Game g : values()) if (g.name().equals(n) || g.title.equals(n)) return g;
+    if (n.equals("POWERPLUS")) return POWERPLUS;
+    if (n.equals("DAILYPLUS")) return DAILYPLUS;
+    if (n.equals("POWERBALL EXTRA")) return XTRA;
     throw new IllegalArgumentException("Unknown current game: " + s);
   }
 }

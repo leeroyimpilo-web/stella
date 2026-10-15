@@ -8,7 +8,7 @@ public final class DemoArchive {
   public static List<Draw> forGame(Game g) {
     List<Draw> out = new ArrayList<>();
     Random random = new Random(20261015L + g.ordinal());
-    LocalDate date = LocalDate.of(2026, 10, 14);
+    LocalDate date = g.active() ? LocalDate.of(2026, 10, 14) : LocalDate.of(2026, 5, 30);
     while (out.size() < 24) {
       if (g.scheduled(date)) {
         TreeSet<Integer> values = new TreeSet<>();

@@ -1,4 +1,4 @@
-name: LottoLab Next / APK and native UI checks
+name: LottoLab / APK and native UI checks
 on:
   push:
     branches: ["lottolab-next/**"]
@@ -36,6 +36,7 @@ jobs:
         run: |
           mkdir -p lottolab-next/qa
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs lottolab-next/app/build/outputs/apk/debug/app-debug.apk > lottolab-next/qa/apk-verification.txt
+          grep -Fq 'certificate SHA-256 digest: 6b28c9e10c6395bd11d51935d51d127bfa716edab1ab90315f4704257d4d4d85' lottolab-next/qa/apk-verification.txt
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -62,7 +63,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LottoLab-Preview-0.1
+          name: LottoLab-0.2
           path: |
             lottolab-next/app/build/outputs/apk/debug/app-debug.apk
             lottolab-next/app/build/reports/tests/testDebugUnitTest/

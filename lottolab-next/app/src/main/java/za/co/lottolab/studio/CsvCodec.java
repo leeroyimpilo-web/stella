@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 public final class CsvCodec {
-  public static final String HEADER = "game,date,numbers,bonus,powerball";
+  public static final String HEADER = "game,date,numbers,bonus,powerball,source_url,fetched_at";
 
   public static List<Draw> parse(String source, LocalDate asOf) {
     String[] lines = source.replace("\uFEFF", "").split("\\r?\\n");
@@ -33,7 +33,10 @@ public final class CsvCodec {
                 date,
                 Entry.parseNumbers(value(c, cols, "numbers")),
                 number(value(c, cols, "bonus")),
-                number(value(c, cols, "powerball")));
+                number(value(c, cols, "powerball")),
+                sourceUrl(value(c, cols, "source_url")),
+                value(c, cols, "fetched_at"),
+                "imported");
         if (!keys.add(d.key()))
           throw new IllegalArgumentException("Duplicate game/date in this file.");
         out.add(d);
@@ -45,6 +48,12 @@ public final class CsvCodec {
     }
     if (out.isEmpty()) throw new IllegalArgumentException("The file contains no draw rows.");
     return out;
+  }
+
+  private static String sourceUrl(String s) {
+    if (!s.isEmpty() && !s.startsWith("https://"))
+      throw new IllegalArgumentException("Source links must use HTTPS.");
+    return s;
   }
 
   static String value(List<String> row, Map<String, Integer> cols, String key) {
@@ -77,6 +86,12 @@ public final class CsvCodec {
     return out;
   }
 
+  public static String quote(String s) {
+    // Prefix spreadsheet formula triggers in user-controlled textual export fields.
+    if (!s.isEmpty() && "=+-@".indexOf(s.charAt(0)) >= 0) s = "'" + s;
+    return "\"" + s.replace("\"", "\"\"") + "\"";
+  }
+
   public static String write(List<Draw> draws) {
     StringBuilder s = new StringBuilder(HEADER + "\n");
     for (Draw d : draws) {
@@ -89,6 +104,10 @@ public final class CsvCodec {
           .append(d.bonus == 0 ? "" : d.bonus)
           .append(',')
           .append(d.powerBall == 0 ? "" : d.powerBall)
+          .append(',')
+          .append(quote(d.sourceUrl))
+          .append(',')
+          .append(quote(d.fetchedAt))
           .append('\n');
     }
     return s.toString();

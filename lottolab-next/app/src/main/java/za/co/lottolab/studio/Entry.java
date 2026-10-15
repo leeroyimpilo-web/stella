@@ -10,9 +10,17 @@ public final class Entry {
   public final int powerBall;
   public final boolean subset;
   public final String name;
+  public final String ruleId;
 
   public Entry(Game game, int[] numbers, int powerBall, boolean subset, String name) {
+    this(game, numbers, powerBall, subset, name, RuleSet.current(game).id);
+  }
+
+  public Entry(
+      Game game, int[] numbers, int powerBall, boolean subset, String name, String ruleId) {
     this.game = game;
+    RuleSet rules = RuleSet.forId(game, ruleId);
+    this.ruleId = rules.id;
     this.numbers = numbers.clone();
     Arrays.sort(this.numbers);
     this.powerBall = powerBall;
@@ -25,20 +33,20 @@ public final class Entry {
           "Choose " + (subset ? "1 to " : "") + game.picks + " main numbers.");
     int prev = 0;
     for (int n : this.numbers) {
-      if (n < 1 || n > game.pool)
-        throw new IllegalArgumentException("Main numbers must be 1-" + game.pool + ".");
+      if (n < 1 || n > rules.pool)
+        throw new IllegalArgumentException("Main numbers must be 1-" + rules.pool + ".");
       if (n == prev) throw new IllegalArgumentException("Main numbers must be distinct.");
       prev = n;
     }
     if (game.hasPowerBall()) {
-      if (powerBall > game.powerPool || powerBall < 0 || (!subset && powerBall == 0))
-        throw new IllegalArgumentException("Choose a PowerBall from 1-" + game.powerPool + ".");
+      if (powerBall > rules.powerPool || powerBall < 0 || (!subset && powerBall == 0))
+        throw new IllegalArgumentException("Choose a PowerBall from 1-" + rules.powerPool + ".");
     } else if (powerBall != 0)
       throw new IllegalArgumentException("This game has no selected PowerBall.");
   }
 
   public Entry named(String s) {
-    return new Entry(game, numbers, powerBall, subset, s);
+    return new Entry(game, numbers, powerBall, subset, s, ruleId);
   }
 
   public String key() {

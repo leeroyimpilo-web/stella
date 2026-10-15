@@ -20,6 +20,13 @@ public final class PdfReport {
           wrapped.add(line);
           line = word;
         } else line = candidate;
+        // A source URL or unbroken note must stay inside the A4 text column too.
+        while (p.measureText(line) > 497) {
+          int cut = p.breakText(line, true, 497, null);
+          if (cut < 1) cut = 1;
+          wrapped.add(line.substring(0, cut));
+          line = line.substring(cut);
+        }
       }
       wrapped.add(line);
     }
@@ -42,8 +49,7 @@ public final class PdfReport {
       }
       p.setColor(Color.DKGRAY);
       p.setTextSize(8);
-      c.drawText(
-          "LottoLab design build 0.1 | Research history does not predict future draws", 44, 815, p);
+      c.drawText("LottoLab 0.2 | Research history does not predict future draws", 44, 815, p);
       c.drawText(Integer.toString(pageNo++), 540, 815, p);
       pdf.finishPage(page);
     }

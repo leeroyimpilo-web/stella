@@ -149,18 +149,20 @@ public class CoreTest {
   }
 
   @Test
-  public void formerRuleEntriesAreRejectedInCurrentImporter() {
-    try {
-      new Draw(Game.LOTTO, LocalDate.of(2026, 5, 30), new int[] {1, 2, 3, 4, 5, 6}, 8, 0);
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
+  public void historicalEntriesUseTheirDatedRules() {
+    Draw old =
+        new Draw(Game.LOTTO, LocalDate.of(2026, 5, 30), new int[] {1, 2, 3, 4, 5, 58}, 57, 0);
+    assertEquals("2025-09", old.ruleId);
+    assertEquals(58, RuleSet.forDate(Game.LOTTO, old.date).pool);
+    assertEquals(52, RuleSet.forDate(Game.LOTTO, LocalDate.of(2026, 6, 1)).pool);
+    assertEquals(
+        0, AnalysisEngine.analyse(DemoArchive.initial(Game.LOTTO, 0), Arrays.asList(old)).checked);
   }
 
   @Test
   public void generatedEntriesRespectPoolsAndUniqueness() {
     SecureRandom rng = new SecureRandom();
-    for (Game g : Game.values())
+    for (Game g : Game.current())
       for (int i = 0; i < 100; i++) {
         Entry e = Entry.random(g, rng);
         assertEquals(g.picks, e.numbers.length);

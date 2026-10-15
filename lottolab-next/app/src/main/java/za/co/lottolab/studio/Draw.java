@@ -8,12 +8,27 @@ public final class Draw {
   public final LocalDate date;
   public final int[] numbers;
   public final int bonus, powerBall;
+  public final String ruleId, sourceUrl, fetchedAt, verification;
 
   public Draw(Game game, LocalDate date, int[] numbers, int bonus, int pb) {
-    new Entry(game, numbers, pb, false, "");
-    if (date.isBefore(LocalDate.of(2026, 6, 1)))
-      throw new IllegalArgumentException(
-          "This preview imports the current rules from June 2026 onward.");
+    this(game, date, numbers, bonus, pb, "", "", "imported");
+  }
+
+  public Draw(
+      Game game,
+      LocalDate date,
+      int[] numbers,
+      int bonus,
+      int pb,
+      String sourceUrl,
+      String fetchedAt,
+      String verification) {
+    RuleSet rules = RuleSet.forDate(game, date);
+    new Entry(game, numbers, pb, false, "", rules.id);
+    this.ruleId = rules.id;
+    this.sourceUrl = sourceUrl == null ? "" : sourceUrl;
+    this.fetchedAt = fetchedAt == null ? "" : fetchedAt;
+    this.verification = verification == null ? "imported" : verification;
     this.game = game;
     this.date = date;
     this.numbers = numbers.clone();
@@ -21,7 +36,7 @@ public final class Draw {
     this.bonus = bonus;
     this.powerBall = pb;
     if (bonus < 0
-        || bonus > game.pool
+        || bonus > rules.pool
         || (!game.hasBonus() && bonus != 0)
         || bonus != 0 && Arrays.binarySearch(this.numbers, bonus) >= 0)
       throw new IllegalArgumentException("Invalid or repeated bonus ball.");
