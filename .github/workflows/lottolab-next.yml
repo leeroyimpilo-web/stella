@@ -32,6 +32,10 @@ jobs:
           key: lottolab-next-preview-signing-v1
       - name: Unit tests, lint and APK builds
         run: gradle --no-daemon -p lottolab-next :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Verify installable APK signing
+        run: |
+          mkdir -p lottolab-next/qa
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs lottolab-next/app/build/outputs/apk/debug/app-debug.apk > lottolab-next/qa/apk-verification.txt
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
