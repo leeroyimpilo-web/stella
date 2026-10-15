@@ -1,0 +1,67 @@
+name: LottoLab Next / APK and native UI checks
+on:
+  push:
+    branches: ["lottolab-next/**"]
+    paths: ["lottolab-next/**", ".github/workflows/lottolab-next.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: lottolab-next-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+      - name: Install Android SDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;35.0.0' 'platform-tools'
+      - name: Retain preview signing identity
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: lottolab-next-preview-signing-v1
+      - name: Unit tests, lint and APK builds
+        run: gradle --no-daemon -p lottolab-next :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Native UI smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          script: |
+            mkdir -p lottolab-next/qa
+            adb install -r lottolab-next/app/build/outputs/apk/debug/app-debug.apk
+            adb install -r lottolab-next/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell am instrument -w za.co.lottolab.studio.test/za.co.lottolab.studio.SmokeInstrumentation | tee lottolab-next/qa/instrumentation.txt
+            adb logcat -d -s AndroidRuntime > lottolab-next/qa/runtime.txt
+            adb pull /sdcard/Android/data/za.co.lottolab.studio/files/qa/ lottolab-next/qa/screens
+            grep -q 'passed=true' lottolab-next/qa/instrumentation.txt
+      - name: Upload preview APK and verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LottoLab-Preview-0.1
+          path: |
+            lottolab-next/app/build/outputs/apk/debug/app-debug.apk
+            lottolab-next/app/build/reports/tests/testDebugUnitTest/
+            lottolab-next/app/build/reports/lint-results-debug.html
+            lottolab-next/qa/
+          if-no-files-found: error
