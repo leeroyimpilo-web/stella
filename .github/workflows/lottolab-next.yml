@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      LOTTOLAB_KEYSTORE: ${{ runner.temp }}/lottolab-signing/preview.keystore
+      LOTTOLAB_KEYSTORE: ${{ github.workspace }}/.lottolab-signing/preview.keystore
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
