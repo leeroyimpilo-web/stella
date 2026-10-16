@@ -1,4 +1,4 @@
-# LottoLab 0.3
+# LottoLab 0.4
 
 A native Android lottery workspace with four clear tabs. This upgrades the existing `lottolab-next` project and retains application ID `za.co.lottolab.studio`, its SQLite database and saved preferences. It uses the existing Java/native Android stack rather than replacing the app with a WebView or introducing a new package.
 
@@ -32,7 +32,7 @@ Settings, data management and help live in the top menu. Tool screens retain the
 
 ## Data boundaries
 
-**No result history is bundled, and no fictional results are shown in the installed app.** The empty state guides users to enter published draw numbers, import an archive or explicitly connect to the public lottery website feed. Results are labelled entered/imported or downloaded feed data and must be checked with the operator. A configured feed is not automatically certified as an independently verified result or prize source.
+**The 0.4 APK bundles a validated, dated offline 2025–2026 historical archive; no fictional results are shown in the installed app.** The empty state guides users to enter published draw numbers, import an archive or explicitly connect to the public lottery website feed. Results are labelled entered/imported or downloaded feed data and must be checked with the operator. A configured feed is not automatically certified as an independently verified result or prize source.
 
 Verified prize divisions/payouts are not connected. The checker reports main, bonus and PowerBall matches without claiming a monetary win. The odds screen shows mathematical match categories, explicitly not an authenticated prize table. Sports pools are outside this number-draw build.
 
@@ -73,3 +73,31 @@ The existing GitHub Actions workflow builds, checks APK signing and runs native 
 The CI workflow explicitly creates and retains a development signer before running tests, and checks that the APK matches that key. Production store signing is a separate release setup. Local verification builds use a separate test certificate.
 
 **Installation boundary:** the 0.1 workflow attempted to cache a keystore path that did not exist, so its original private signing key is unavailable. This 0.2 APK cannot update an installed 0.1 preview in place. Do not uninstall a preview containing important records without first extracting or exporting them. The package and schema migration are preserved for installations with the matching signing key; the device suite verifies preservation of version-1 rows and saved preferences. Retain the corrected CI signing cache for subsequent 0.2/0.3 updates.
+
+
+## Offline-first history and automatic updates (0.4)
+
+**UI freeze:** The existing four-tab layouts, theme, button labels and visual design are retained.
+The historical-data importer is build-time only; it does not collect user information.
+
+The Android APK bundles `app/src/main/assets/seed_draws.csv`, regenerated from publicly
+readable, independently operated ZA national-lottery archive pages during a successful CI build.
+The supported date period is from 21 September 2025; these are historical facts with explicit
+source URLs, not an independently certified complete official archive. If the source is unavailable,
+the build fails rather than shipping empty or imaginary data.
+
+The first launch imports seed records transactionally into local SQLite (INSERT OR IGNORE).
+Existing entered/imported records, tickets, saved lines and preferences are never replaced.
+All research, checking, generating, exporting and archiving remain usable without Wi-Fi/data.
+
+New installs default to the operator website's optional *undocumented* public results endpoint and
+enable a network-constrained six-hour background refresh. After extended offline use, opening the
+app schedules a network-connected catch-up job. Android may defer tasks for battery optimization.
+Previously saved explicit feed choices and background-update switches are kept.
+To update immediately, use Settings → Refresh results. Refresh failure leaves cached draws untouched.
+You can still import CSV manually, disable updates or choose a custom source in Settings.
+
+Run `python3 lottolab-next/tools/build_seed.py` before local builds; its parser fixture
+can run offline with `--fixture-only`. Build includes historical seed automatically in CI.
+The archive site is independent of the lottery operator and does not provide an official developer
+API SLA. Check the operator's published results before making a prize claim.
