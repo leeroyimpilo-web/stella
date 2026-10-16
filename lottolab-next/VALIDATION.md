@@ -14,3 +14,12 @@ The native device suite is implemented for version-1 migration, ticket checks, h
 A local verification build uses a separate test signer. The first approved CI run built successfully but stopped at the original-certificate check: the 0.1 signing cache had never been saved because its path did not exist. The corrected workflow explicitly creates and caches a development key before tests and checks the APK against it. The 0.2 APK cannot update an installed 0.1 preview in place; it requires a fresh installation or the unavailable original private key. Existing version-1 rows and preferences are exercised by the native migration suite.
 
 No live official draw feed or verified prize payout integration is included. Data-dependent tools use user-entered/imported records or an explicitly configured feed and display that limitation.
+
+
+## 0.3 continuation
+
+The new release adds a strictly validated optional operator website results adapter and adjusts
+the number editor window size for visible screen bounds. The native instrumentation suite
+now checks response pool mapping, duplicate rejection and that both dialog actions are
+visibly contained in the active window at narrow resolution and 1.3x font scale.
+The remote CI result must be checked before claiming the 0.3 APK or device journeys pass.
