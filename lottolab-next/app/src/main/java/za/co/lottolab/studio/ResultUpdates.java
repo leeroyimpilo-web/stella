@@ -8,22 +8,43 @@ import android.os.Build;
 import java.util.*;
 
 public final class ResultUpdates extends JobService {
+  private static final int PERIODIC_JOB = 2202;
+  private static final int CONNECTED_JOB = 2203;
+  private static final long SIX_HOURS = 6 * 60 * 60 * 1000L;
   private volatile boolean stopped;
 
   public static void schedule(Context c) {
     ArchiveStore store = new ArchiveStore(c);
+    android.content.SharedPreferences prefs = store.preferences();
+    // Initial installation is automatic. Existing explicit choices always take precedence.
+    if (!prefs.contains("feed_url"))
+      prefs.edit().putString("feed_url", OperatorResults.ENDPOINT).apply();
+    if (!prefs.contains("background_updates"))
+      prefs.edit().putBoolean("background_updates", true).apply();
     boolean enabled =
-        !store.preferences().getString("feed_url", "").isEmpty()
-            && store.preferences().getBoolean("background_updates", false);
+        !prefs.getString("feed_url", "").isEmpty()
+            && prefs.getBoolean("background_updates", true);
     JobScheduler jobs = (JobScheduler) c.getSystemService(JOB_SCHEDULER_SERVICE);
-    if (enabled)
+    ComponentName service = new ComponentName(c, ResultUpdates.class);
+    if (enabled) {
       jobs.schedule(
-          new JobInfo.Builder(2202, new ComponentName(c, ResultUpdates.class))
+          new JobInfo.Builder(PERIODIC_JOB, service)
               .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-              .setPeriodic(6 * 60 * 60 * 1000L)
+              .setPeriodic(SIX_HOURS)
               .setPersisted(true)
               .build());
-    else jobs.cancel(2202);
+      // Network-constrained catch-up job on an app launch after prolonged offline use.
+      long last = prefs.getLong("last_attempt", 0);
+      if (System.currentTimeMillis() - last > SIX_HOURS)
+        jobs.schedule(
+            new JobInfo.Builder(CONNECTED_JOB, service)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setMinimumLatency(1000L)
+                .build());
+    } else {
+      jobs.cancel(PERIODIC_JOB);
+      jobs.cancel(CONNECTED_JOB);
+    }
     store.close();
   }
 
@@ -32,9 +53,9 @@ public final class ResultUpdates extends JobService {
     stopped = false;
     new Thread(
             () -> {
-              boolean retry = false;
               ArchiveStore store = new ArchiveStore(this);
               try {
+                store.preferences().edit().putLong("last_attempt", System.currentTimeMillis()).apply();
                 List<Draw> draws = FeedClient.fetch(store.preferences().getString("feed_url", ""));
                 if (!stopped) {
                   int changed = store.importDraws(draws);
@@ -47,11 +68,10 @@ public final class ResultUpdates extends JobService {
                   if (changed > 0) notifyAvailable(this, store);
                 }
               } catch (Exception e) {
-                retry = true;
                 store.preferences().edit().putString("sync_error", e.getMessage()).apply();
               } finally {
                 store.close();
-                if (!stopped) jobFinished(params, retry);
+                if (!stopped) jobFinished(params, false);
               }
             },
             "lottolab-results")
