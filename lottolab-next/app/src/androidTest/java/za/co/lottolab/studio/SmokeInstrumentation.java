@@ -34,7 +34,9 @@ public class SmokeInstrumentation extends Instrumentation {
       folder = new File(c.getExternalFilesDir(null), "qa");
       if (!folder.exists() && !folder.mkdirs()) throw new IOException("Cannot create QA folder");
       c.deleteDatabase("lottolab_studio.db");
-      c.getSharedPreferences("lottolab_studio", Context.MODE_PRIVATE).edit().clear().commit();
+      // Disable network jobs only inside this test: offline bootstrap must be deterministic.
+      c.getSharedPreferences("lottolab_studio", Context.MODE_PRIVATE).edit().clear()
+          .putString("feed_url", "").putBoolean("background_updates", false).commit();
       testOperatorParsing();
       date = LocalDate.now(ZoneId.of("Africa/Johannesburg"));
       while (!Game.LOTTO.scheduled(date)) date = date.minusDays(1);
@@ -58,10 +60,18 @@ public class SmokeInstrumentation extends Instrumentation {
           .commit();
       startApp();
       ArchiveStore store = new ArchiveStore(c);
-      check(store.draws(Game.LOTTO, 0).size() == 1, "Version-1 draw was lost");
+      List<Draw> initialLotto = store.draws(Game.LOTTO, 0);
+      check(initialLotto.size() > 70, "Packaged Lotto archive did not seed offline");
+      check(store.draws(Game.DAILY, 0).size() > 300, "Packaged Daily Lotto history missing");
+      check(initialLotto.stream().anyMatch(d -> d.date.equals(date)
+          && Arrays.equals(d.numbers, new int[] {1, 2, 3, 4, 5, 6})),
+          "Version-1 draw was overwritten by the packaged seed");
+      check(store.preferences().getInt("bundled_archive_version", 0) == SeedArchive.VERSION,
+          "Packaged archive did not finish its first-launch import");
       check(store.saved().size() == 1, "Version-1 saved line was lost");
       check(store.getReadableDatabase().getVersion() == 2, "Schema was not migrated");
       store.clearImports();
+      check(store.draws(Game.LOTTO, 0).isEmpty(), "Clear imports did not remove seeded draws");
       click("tab_home");
       requireText("No results downloaded yet");
       rejectText("SAMPLE DATA");
