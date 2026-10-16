@@ -35,6 +35,7 @@ public class SmokeInstrumentation extends Instrumentation {
       if (!folder.exists() && !folder.mkdirs()) throw new IOException("Cannot create QA folder");
       c.deleteDatabase("lottolab_studio.db");
       c.getSharedPreferences("lottolab_studio", Context.MODE_PRIVATE).edit().clear().commit();
+      testOperatorParsing();
       date = LocalDate.now(ZoneId.of("Africa/Johannesburg"));
       while (!Game.LOTTO.scheduled(date)) date = date.minusDays(1);
       // Simulate the shipped 0.1 database and saved-entry JSON without any new fields.
@@ -202,6 +203,8 @@ public class SmokeInstrumentation extends Instrumentation {
       click("home_check");
       click("choose_numbers");
       shot("12-narrow-large-font-grid");
+      requireDialogActionVisible("Cancel");
+      requireDialogActionVisible("Use these numbers");
       clickAccessible("Cancel");
       shell("wm size reset");
       shell("wm density reset");
@@ -222,6 +225,50 @@ public class SmokeInstrumentation extends Instrumentation {
       }
       finish(Activity.RESULT_CANCELED, result);
     }
+  }
+
+  /** Operator response fixtures exist in device tests, never in the installed draw archive. */
+  private void testOperatorParsing() throws Exception {
+    JSONObject lotto = new JSONObject()
+        .put("winPoolName", "LOTTO")
+        .put("drawTime", "2026-10-14 21:00:00")
+        .put("winNumList", new JSONArray(Arrays.asList("1", "2", "3", "4", "5", "6", "7")));
+    JSONObject plus = new JSONObject()
+        .put("winPoolName", "LOTTO PLUS 1")
+        .put("drawTime", "2026-10-14 21:00:00")
+        .put("winNumList", new JSONArray(Arrays.asList("11", "12", "13", "14", "15", "16", "17")));
+    JSONObject payload = new JSONObject().put("code", 0)
+        .put("data", new JSONObject().put("list", new JSONArray().put(lotto).put(plus)));
+    List<Draw> results = OperatorResults.parse(payload.toString(), LocalDate.of(2026, 10, 15));
+    check(results.size() == 2, "Operator response did not preserve two lotto pools");
+    check(results.get(0).game == Game.LOTTO && results.get(0).bonus == 7,
+        "Operator bonus ball was parsed incorrectly");
+    check(results.get(1).game == Game.PLUS1 && results.get(1).bonus == 17,
+        "Operator add-on pool was incorrectly mapped");
+    check(results.get(0).verification.equals("feed"), "Operator results must be labelled as feed data");
+    payload.getJSONObject("data").getJSONArray("list").put(lotto);
+    boolean rejected = false;
+    try {
+      OperatorResults.parse(payload.toString(), LocalDate.of(2026, 10, 15));
+    } catch (IllegalArgumentException expected) {
+      rejected = true;
+    }
+    check(rejected, "Duplicate operator draw must reject the entire update");
+    check(OperatorResults.gameForPool("DAILY LOTTO PLUS") == null,
+        "Discontinued daily add-on should not be mapped to current games");
+  }
+
+  private void requireDialogActionVisible(String label) {
+    AccessibilityNodeInfo root = getUiAutomation().getRootInActiveWindow();
+    check(root != null, "No accessible dialog window");
+    AccessibilityNodeInfo action = findAccessible(root, label);
+    check(action != null, "Dialog action missing: " + label);
+    android.graphics.Rect screen = new android.graphics.Rect();
+    android.graphics.Rect bounds = new android.graphics.Rect();
+    root.getBoundsInScreen(screen);
+    action.getBoundsInScreen(bounds);
+    check(bounds.width() > 0 && bounds.height() > 0 && screen.contains(bounds),
+        "Dialog action clipped or outside the visible window: " + label);
   }
 
   private void startApp() {
