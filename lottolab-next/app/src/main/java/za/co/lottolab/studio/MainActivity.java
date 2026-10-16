@@ -1024,9 +1024,16 @@ public final class MainActivity extends Activity {
             .create();
     dialog.setOnShowListener(
         v -> {
-          dialog
-              .getWindow()
-              .setLayout(-1, (int) (getResources().getDisplayMetrics().heightPixels * .86));
+          android.view.Window window = dialog.getWindow();
+          // Fit inside visible display bounds, including system bars and large-font devices.
+          android.graphics.Rect visible = new android.graphics.Rect();
+          window.getDecorView().getWindowVisibleDisplayFrame(visible);
+          int height = visible.height() > 0
+              ? visible.height() : getResources().getDisplayMetrics().heightPixels;
+          window.setSoftInputMode(
+              android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                  | android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+          window.setLayout(-1, (int) (height * .80f));
           TextView use = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
           use.setTag("editor_use");
           use.setOnClickListener(
@@ -3050,6 +3057,21 @@ public final class MainActivity extends Activity {
               }
             }));
     advanced.setOnCheckedChangeListener((v, on) -> f.setVisibility(on ? View.VISIBLE : View.GONE));
+    note(feed, "Optional: use the National Lottery website's public results service. "
+        + "Its undocumented interface may change; downloaded records are not independent prize verification.");
+    add(feed, button("Connect National Lottery results", false, () ->
+        new AlertDialog.Builder(this)
+            .setTitle("Use public lottery results?")
+            .setMessage("This connects to the National Lottery website's public results endpoint. "
+                + "It is not a guaranteed or supported API and may become unavailable. "
+                + "Any existing custom feed address will be replaced. Saved tickets and imported history stay intact. "
+                + "Always confirm numbers and prizes with the operator.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Connect and refresh", (dialog, which) -> {
+              store.preferences().edit().putString("feed_url", OperatorResults.ENDPOINT).apply();
+              ResultUpdates.schedule(this);
+              refreshFeed();
+            }).show()));
     add(feed, button("Refresh results", false, this::refreshFeed));
     CheckBox background =
         check(
@@ -3117,13 +3139,14 @@ public final class MainActivity extends Activity {
     add(backup, button("Restore a backup", false, () -> openDocument(RESTORE)));
     add(content, backup);
     LinearLayout about = card();
-    add(about, text("LottoLab 0.2", 20, GREEN, true));
+    add(about, text("LottoLab 0.3", 20, GREEN, true));
     note(
         about,
         "Native Android · Four clear tabs · Offline storage\n\n"
             + "Current number-draw games and selected historical eras are supported. Sports pools"
-            + " are outside this number-draw build. Live official data and verified prize payouts"
-            + " are not connected.\n\n"
+            + " are outside this number-draw build. An optional public National Lottery website"
+            + " results adapter can be connected; it is not independently verified and may"
+            + " become unavailable. Verified prize payouts are not connected.\n\n"
             + "18+. Historical analysis cannot predict a fair future draw.");
     add(
         about,
