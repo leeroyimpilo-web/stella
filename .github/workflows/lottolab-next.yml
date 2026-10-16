@@ -45,6 +45,10 @@ jobs:
         with:
           path: ${{ env.LOTTOLAB_KEYSTORE }}
           key: lottolab-next-preview-signing-v2
+      - name: Build historical offline archive from public draw tables
+        run: |
+          python3 lottolab-next/tools/build_seed.py
+          test -s lottolab-next/app/src/main/assets/seed_draws.csv
       - name: Unit tests, lint and APK builds
         run: gradle --no-daemon -p lottolab-next :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
       - name: Verify installable APK signing
@@ -79,10 +83,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LottoLab-0.3
+          name: LottoLab-0.4
           path: |
             lottolab-next/app/build/outputs/apk/debug/app-debug.apk
             lottolab-next/app/build/reports/tests/testDebugUnitTest/
             lottolab-next/app/build/reports/lint-results-debug.html
             lottolab-next/qa/
+            lottolab-next/app/src/main/assets/seed_draws.csv
           if-no-files-found: error
