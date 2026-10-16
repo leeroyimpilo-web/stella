@@ -1020,7 +1020,7 @@ public final class MainActivity extends Activity {
             .setTitle(existing == null ? "Choose your numbers" : "Edit your numbers")
             .setView(scroll)
             .setNegativeButton("Cancel", null)
-            .setPositiveButton("Use these numbers", null)
+            .setPositiveButton("Use numbers", null)
             .create();
     dialog.setOnShowListener(
         v -> {
