@@ -1,4 +1,4 @@
-# LottoLab 0.2
+# LottoLab 0.3
 
 A native Android lottery workspace with four clear tabs. This upgrades the existing `lottolab-next` project and retains application ID `za.co.lottolab.studio`, its SQLite database and saved preferences. It uses the existing Java/native Android stack rather than replacing the app with a WebView or introducing a new package.
 
@@ -32,7 +32,7 @@ Settings, data management and help live in the top menu. Tool screens retain the
 
 ## Data boundaries
 
-**No live official feed or bundled draw history is connected. No fictional results are shown in the installed app.** The empty state guides users to enter published draw numbers or import an archive. Results are labelled entered/imported or downloaded feed data and must be checked with the operator. A configured feed is not automatically certified as official.
+**No result history is bundled, and no fictional results are shown in the installed app.** The empty state guides users to enter published draw numbers, import an archive or explicitly connect to the public lottery website feed. Results are labelled entered/imported or downloaded feed data and must be checked with the operator. A configured feed is not automatically certified as an independently verified result or prize source.
 
 Verified prize divisions/payouts are not connected. The checker reports main, bonus and PowerBall matches without claiming a monetary win. The odds screen shows mathematical match categories, explicitly not an authenticated prize table. Sports pools are outside this number-draw build.
 
@@ -58,7 +58,7 @@ Backup restoration validates first and merges favourites/ticket IDs without remo
 
 CSV requires `game,date,numbers`; optional columns are `bonus,powerball,source_url,fetched_at`. Main numbers are space separated. PowerBall results must include their separately selected PowerBall. Imports are bounded to 2 MB/10,000 rows, checked completely and committed transactionally. Dates cannot be in the future; source links use HTTPS. Do not import generated selections as historical draws.
 
-An optional approved JSON feed has a top-level `draws` array. Each object has `game`, ISO `date`, an integer `numbers` array, and the applicable `bonus`, `powerball` and optional HTTPS `source_url`. No endpoint is assumed. Duplicate identities, fractions, invalid numbers or future dates reject the update and retain the cache. Configure a permitted feed through Settings; periodic work runs only after one is configured.
+An optional approved JSON feed has a top-level `draws` array. Each object has `game`, ISO `date`, an integer `numbers` array, and the applicable `bonus`, `powerball` and optional HTTPS `source_url`. No endpoint is assumed. Duplicate identities, fractions, invalid numbers or future dates reject the update and retain the cache. Configure a permitted feed through Settings; periodic work runs only after one is configured. An additional opt-in connection can use the lottery operator website's undocumented public POST endpoint to download recent draws for all six current pools, with strict parsing, transactional storage and source labelling. It may stop working without notice and is not a licensed or guaranteed developer API.
 
 ## Build and verification
 
@@ -72,4 +72,4 @@ The existing GitHub Actions workflow builds, checks APK signing and runs native 
 
 The CI workflow explicitly creates and retains a development signer before running tests, and checks that the APK matches that key. Production store signing is a separate release setup. Local verification builds use a separate test certificate.
 
-**Installation boundary:** the 0.1 workflow attempted to cache a keystore path that did not exist, so its original private signing key is unavailable. This 0.2 APK cannot update an installed 0.1 preview in place. Do not uninstall a preview containing important records without first extracting or exporting them. The package and schema migration are preserved for installations with the matching signing key; the device suite verifies preservation of version-1 rows and saved preferences. Retain the corrected CI signing cache for subsequent 0.2 updates.
+**Installation boundary:** the 0.1 workflow attempted to cache a keystore path that did not exist, so its original private signing key is unavailable. This 0.2 APK cannot update an installed 0.1 preview in place. Do not uninstall a preview containing important records without first extracting or exporting them. The package and schema migration are preserved for installations with the matching signing key; the device suite verifies preservation of version-1 rows and saved preferences. Retain the corrected CI signing cache for subsequent 0.2/0.3 updates.
