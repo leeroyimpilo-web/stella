@@ -72,7 +72,7 @@ public class SmokeInstrumentation extends Instrumentation {
       SystemClock.sleep(250);
       setAccessible("Main numbers input", "1 2 3 4 5 6");
       shot("02-number-grid");
-      clickAccessible("Use these numbers");
+      clickAccessible("Use numbers");
       click("check_ticket");
       requireText("unknown, not a losing ticket");
       Draw fixture =
@@ -204,7 +204,7 @@ public class SmokeInstrumentation extends Instrumentation {
       click("choose_numbers");
       shot("12-narrow-large-font-grid");
       requireDialogActionVisible("Cancel");
-      requireDialogActionVisible("Use these numbers");
+      requireDialogActionVisible("Use numbers");
       clickAccessible("Cancel");
       shell("wm size reset");
       shell("wm density reset");
