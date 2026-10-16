@@ -10,9 +10,11 @@ import org.json.*;
 /** Versioned offline archive. Version 2 adds metadata; existing rows and preferences survive. */
 public final class ArchiveStore extends SQLiteOpenHelper {
   private final SharedPreferences prefs;
+  private final Context appContext;
 
   public ArchiveStore(Context c) {
     super(c, "lottolab_studio.db", null, 2);
+    appContext = c.getApplicationContext();
     prefs = c.getSharedPreferences("lottolab_studio", Context.MODE_PRIVATE);
   }
 
@@ -39,6 +41,26 @@ public final class ArchiveStore extends SQLiteOpenHelper {
       db.execSQL("ALTER TABLE draws ADD COLUMN fetched_at TEXT NOT NULL DEFAULT ''");
       db.execSQL("ALTER TABLE draws ADD COLUMN verification TEXT NOT NULL DEFAULT 'imported'");
       createRevisions(db);
+    }
+  }
+
+  @Override
+  public void onOpen(SQLiteDatabase db) {
+    super.onOpen(db);
+    if (db.isReadOnly() || prefs.getInt("bundled_archive_version", 0) >= SeedArchive.VERSION)
+      return;
+    try {
+      int added = SeedArchive.install(appContext, db);
+      prefs.edit()
+          .putInt("bundled_archive_version", SeedArchive.VERSION)
+          .putInt("bundled_archive_count", added)
+          .remove("bundled_archive_error")
+          .putLong("archive_generation", prefs.getLong("archive_generation", 0) + 1)
+          .apply();
+    } catch (Exception e) {
+      // Failed asset validation must never destroy existing records or crash offline launch.
+      prefs.edit().putString("bundled_archive_error", e.getMessage()).apply();
+      android.util.Log.e("LottoLab", "Cannot initialise the packaged archive", e);
     }
   }
 
