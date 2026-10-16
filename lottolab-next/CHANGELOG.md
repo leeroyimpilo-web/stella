@@ -1,3 +1,13 @@
+# 0.4.0 — data engine (no UI redesign)
+
+- Locks the four-tab LottoLab UI and theme, retaining existing saved entries and application identity.
+- Bundles independently published 2025–2026 draw history into an offline SQLite seed at build time after strict per-game/date validation.
+- Automatically opts new installations into the public operator-results endpoint, schedules six-hour network-aware checks and network-connected catch-up on app launch.
+- Keeps the existing manual Settings → Refresh results button.
+- Performs idempotent, non-destructive seed insertion so offline records and user's own data survive updates.
+- Rejects incomplete source datasets during the build; missing Wi-Fi/mobile data does not block normal app use.
+- Records source URL and import time for each historical draw. Third-party archives and public operator results are not independently certified.
+
 # 0.3.0
 
 - Fixed the number picker sizing for narrow screens, increased font scales and system navigation insets.
