@@ -1,0 +1,44 @@
+name: Build TorrentScout APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "torrent-scout/**"
+      - ".github/workflows/torrent-scout-apk.yml"
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Install SDK
+        run: yes | sdkmanager --licenses > /dev/null; sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Build APK
+        working-directory: torrent-scout
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Rename APK
+        run: cp torrent-scout/app/build/outputs/apk/debug/app-debug.apk TorrentScout.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TorrentScout-APK
+          path: TorrentScout.apk
+          if-no-files-found: error
+      - name: Publish Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view torrentscout-v0.1 >/dev/null 2>&1; then
+            gh release upload torrentscout-v0.1 TorrentScout.apk --clobber
+          else
+            gh release create torrentscout-v0.1 TorrentScout.apk --title "TorrentScout v0.1" --notes "Android test build: Internet Archive, Torznab indexers, magnet links and saved results."
+          fi
