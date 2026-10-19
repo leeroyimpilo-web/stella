@@ -1,4 +1,4 @@
-# LottoLab 0.5
+# LottoLab 0.6
 
 A native Android lottery workspace with four clear tabs. This upgrades the existing `lottolab-next` project and retains application ID `za.co.lottolab.studio`, its SQLite database and saved preferences. It uses the existing Java/native Android stack rather than replacing the app with a WebView or introducing a new package.
 
@@ -123,3 +123,33 @@ unchanged. No sensitive data is uploaded for stats or help.
 User testing: verify screen reader access to each drawer link, narrow Android screens,
 all drawer routes, Help chapters and FAQ dialogs, Home stats consistency, offline startup,
 preserved tickets and signed upgrade from 0.4.
+
+
+## 0.6 — automatic updates and richer stats
+
+- No data-source, API URL or background scheduling toggle appears in Settings.
+- New and existing installations automatically enable network-constrained, persisted Android
+  periodic result checks approximately every six hours, and schedule a catch-up attempt
+  on launch when a connection and enough time have elapsed. Android may defer work.
+- A prior approved custom HTTPS source is retained; when no source is present, the existing
+  public National Lottery *undocumented* endpoint is used automatically. No user key is required.
+  This is best-effort access, **not a guaranteed official developer API**; last-success timestamps
+  confirm an accepted download, not independent prize validation.
+- Offline SQLite history, saved numbers, dated tickets, exports, backup files and navigation
+  remain unchanged. An internet failure never deletes cached history.
+- Home AI Lotto Stats now shows leading pairs/triples and average patterns; a window chooser
+  opens 30, 100, or all available draws in the same rule era. Rank ties are deterministic
+  and missing archive dates affect descriptive statistics.
+- The latest result and historical draw cards link to a dated independent public
+  prize-breakdown page with jackpot and published winner payouts *when that page exists*.
+  This opens online; payout figures are NOT yet imported into the phone database and
+  are NOT used to claim or calculate a monetary win. Confirm tickets and cash prizes
+  through the operator or a retailer. The archive publisher is independent of LottoLab.
+- Result notifications remain a single understandable opt-in, since newer Android
+  versions require explicit notification permission. Selecting it enables notifications
+  for all currently supported games rather than showing one checkbox per game.
+
+Further production work: obtain permission and a documented provider feed for signed prize
+division data (jackpot, rollover, draw ID, division match definition, winners and payout
+amount), implement audited import and non-destructive offline storage, then reconcile each
+result against the operator before adding monetary prize estimates.
