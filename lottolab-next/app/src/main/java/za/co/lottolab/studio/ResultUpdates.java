@@ -16,6 +16,16 @@ public final class ResultUpdates extends JobService {
   public static void schedule(Context c) {
     ArchiveStore store = new ArchiveStore(c);
     android.content.SharedPreferences prefs = store.preferences();
+    // Explicit instrumentation-only offline mode: avoids background downloads
+    // racing with the controlled migration, empty-cache and saved-ticket tests.
+    // The production app never sets this preference.
+    if (prefs.getBoolean("qa_disable_updates", false)) {
+      JobScheduler scheduler = (JobScheduler) c.getSystemService(JOB_SCHEDULER_SERVICE);
+      scheduler.cancel(PERIODIC_JOB);
+      scheduler.cancel(CONNECTED_JOB);
+      store.close();
+      return;
+    }
     // Upgrade the old optional public-website feed automatically to BetTip.
     // Preserve a user's previously configured custom approved HTTPS feed.
     String previous = prefs.getString("feed_url", "");
