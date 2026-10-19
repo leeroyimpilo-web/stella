@@ -221,6 +221,14 @@ public class SmokeInstrumentation extends Instrumentation {
       restart();
       click("tab_home");
       requireText("Check my numbers");
+      onMain(() -> {
+        View v = activity.getWindow().getDecorView().findViewWithTag("menu_toggle");
+        check(v != null, "Menu unavailable at enlarged fonts");
+        int[] pos = new int[2];
+        v.getLocationOnScreen(pos);
+        check(pos[1] >= Math.round(75 * activity.getResources().getDisplayMetrics().density),
+            "Menu and title overlap status bar at large fonts");
+      });
       shot("11-narrow-large-font-home");
       click("home_check");
       click("choose_numbers");
