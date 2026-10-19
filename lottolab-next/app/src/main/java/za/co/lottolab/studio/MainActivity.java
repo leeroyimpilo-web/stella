@@ -1791,17 +1791,17 @@ public final class MainActivity extends Activity {
       case PLUS2: slug = "lotto-plus-2"; break;
       case MAX5: slug = "lotto-5-max"; break;
       case POWERBALL: slug = "powerball"; break;
-      case XTRA: slug = "powerball-xtra"; break;
+      case XTRA: slug = "powerball-plus"; break;
       case POWERPLUS: slug = "powerball-plus"; break;
       case DAILY: slug = "daily-lotto"; break;
       case DAILYPLUS: slug = "daily-lotto-plus"; break;
       default: slug = "lotto";
     }
-    String dd = String.format(Locale.ROOT, "%02d", d.date.getDayOfMonth());
+    String dd = String.valueOf(d.date.getDayOfMonth());
     String month = d.date.getMonth().getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH)
         .toLowerCase(Locale.ROOT);
-    return "https://za.national-lottery.com/" + slug + "/results/" + dd + "-"
-        + month + "-" + d.date.getYear();
+    return "https://bettip.co.za/" + slug + "/results/" + dd + "-"
+        + month + "-" + d.date.getYear() + "/";
   }
 
   private void drawDetail(Draw d, Entry e) {
