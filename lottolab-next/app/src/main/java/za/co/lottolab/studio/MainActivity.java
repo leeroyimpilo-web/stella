@@ -3123,8 +3123,8 @@ public final class MainActivity extends Activity {
     note(data, game.title + "\n" + coverageText(ds));
     note(
         data,
-        "No approved automatic source is bundled. You can enter published results or import an"
-            + " archive. Imported data is labelled and is not independently verified.");
+        "Saved history works offline. Automatic updates use an optional public web feed, which"
+            + " may be unavailable. You can always enter a draw or import an archive.");
     add(
         data,
         button("Enter a published draw", false, () -> datePicker(defaultDate(), this::addDraw)));
@@ -3305,10 +3305,10 @@ public final class MainActivity extends Activity {
     add(backup, button("Restore a backup", false, () -> openDocument(RESTORE)));
     add(content, backup);
     LinearLayout about = card();
-    add(about, text("LottoLab 0.3", 20, GREEN, true));
+    add(about, text("LottoLab 0.5", 20, GREEN, true));
     note(
         about,
-        "Native Android · Four clear tabs · Offline storage\n\n"
+        "Native Android · Easy side menu · Offline history and help\n\n"
             + "Current number-draw games and selected historical eras are supported. Sports pools"
             + " are outside this number-draw build. An optional public National Lottery website"
             + " results adapter can be connected; it is not independently verified and may"
