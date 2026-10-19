@@ -28,7 +28,7 @@ public final class MainActivity extends Activity {
   private ArchiveStore store;
   private long viewedRevision;
   private LinearLayout root, toolbar, navigation, content, output;
-  private PopupWindow drawer;
+  PopupWindow drawer; // Package-visible for native navigation verification.
   private int chapterIndex = 0;
   private Game game = Game.LOTTO;
   private String tab = "home",
