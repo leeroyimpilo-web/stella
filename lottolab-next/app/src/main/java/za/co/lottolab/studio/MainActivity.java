@@ -909,6 +909,27 @@ public final class MainActivity extends Activity {
     }
     add(content, latest);
 
+    List<TicketRecord> savedTickets = store.tickets();
+    if (!savedTickets.isEmpty()) {
+      LinearLayout matchesCard = card();
+      add(matchesCard, text("My dated tickets · draw matches", 19, GREEN, true));
+      note(matchesCard, "Automatically compared against your locally saved results."
+          + " Unavailable draws remain unknown, never counted as losses.");
+      Set<Game> gamesNeeded = new HashSet<>();
+      for (TicketRecord t : savedTickets) gamesNeeded.add(t.entry.game);
+      List<Draw> known = new ArrayList<>();
+      for (Game requested : gamesNeeded) known.addAll(store.draws(requested, 0));
+      List<TicketMatches.Item> results = TicketMatches.evaluate(savedTickets, known);
+      for (int i = 0; i < Math.min(5, results.size()); i++) {
+        TicketMatches.Item result = results.get(i);
+        note(matchesCard, (result.ticket.purchased ? "Recorded purchase: " : "Planned: ")
+            + result.text());
+      }
+      add(matchesCard, button("Review all saved tickets  ›", false,
+          () -> go("numbers", "tickets")));
+      add(content, matchesCard);
+    }
+
     add(content, text("What would you like to do?", 22, TEXT, true));
     primary(content, "Check my numbers", "home_check", () -> go("lab", "check"));
     add(content, button("Generate numbers", false, () -> go("lab", "generate")));
