@@ -16,14 +16,13 @@ public final class ResultUpdates extends JobService {
   public static void schedule(Context c) {
     ArchiveStore store = new ArchiveStore(c);
     android.content.SharedPreferences prefs = store.preferences();
-    // Initial installation is automatic. Existing explicit choices always take precedence.
-    if (!prefs.contains("feed_url"))
+    // No setup step for users. Retain any pre-existing approved custom HTTPS feed;
+    // otherwise use the public operator-site adapter automatically.
+    if (prefs.getString("feed_url", "").trim().isEmpty())
       prefs.edit().putString("feed_url", OperatorResults.ENDPOINT).apply();
-    if (!prefs.contains("background_updates"))
-      prefs.edit().putBoolean("background_updates", true).apply();
-    boolean enabled =
-        !prefs.getString("feed_url", "").isEmpty()
-            && prefs.getBoolean("background_updates", true);
+    // Automatic updates are a core LottoLab feature, not an opt-in setting.
+    prefs.edit().putBoolean("background_updates", true).apply();
+    boolean enabled = true;
     JobScheduler jobs = (JobScheduler) c.getSystemService(JOB_SCHEDULER_SERVICE);
     ComponentName service = new ComponentName(c, ResultUpdates.class);
     if (enabled) {
@@ -34,7 +33,8 @@ public final class ResultUpdates extends JobService {
               .setPersisted(true)
               .build());
       // Network-constrained catch-up job on an app launch after prolonged offline use.
-      long last = prefs.getLong("last_attempt", 0);
+      long last = Math.max(
+          prefs.getLong("last_attempt", 0), prefs.getLong("last_sync", 0));
       if (System.currentTimeMillis() - last > SIX_HOURS)
         jobs.schedule(
             new JobInfo.Builder(CONNECTED_JOB, service)
@@ -68,7 +68,9 @@ public final class ResultUpdates extends JobService {
                   if (changed > 0) notifyAvailable(this, store);
                 }
               } catch (Exception e) {
-                store.preferences().edit().putString("sync_error", e.getMessage()).apply();
+                // Preserve all cached results. Next network-constrained job retries.
+                store.preferences().edit().putString("sync_error",
+                    e.getClass().getSimpleName() + ": " + e.getMessage()).apply();
               } finally {
                 store.close();
                 if (!stopped) jobFinished(params, false);
