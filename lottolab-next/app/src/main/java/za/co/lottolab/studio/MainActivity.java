@@ -797,8 +797,10 @@ public final class MainActivity extends Activity {
 
   private String sourceLabel(Draw d) {
     return d.verification.equals("feed")
-        ? "Downloaded feed · verify with operator"
-        : "Imported / entered · verify with operator";
+        ? "Downloaded result · confirm with operator"
+        : d.verification.equals("bundled archive")
+            ? "Saved offline history · confirm with operator"
+            : "Imported / entered · confirm with operator";
   }
 
   private String coverageText(List<Draw> ds) {
@@ -824,29 +826,75 @@ public final class MainActivity extends Activity {
   }
 
   private void home() {
-    heading("Your numbers. Your laboratory.", "Choose what you want to do.");
+    heading("Welcome to LottoLab", "One simple step at a time. Choose a game to begin.");
     gameRow();
-    LinearLayout latest = card();
-    List<Draw> ds = store.draws(game, 1);
-    if (ds.isEmpty()) {
-      add(latest, text("No results downloaded yet", 19, TEXT, true));
-      note(
-          latest,
-          "Add published draw numbers or import an archive to start checking and researching.");
-      add(latest, button("Add results", false, () -> go("results", "settings")));
+    List<Draw> history = store.draws(game, 0);
+    SmartInsights insight = SmartInsights.analyze(game, history, 30);
+    LinearLayout stats = card();
+    add(stats, text("AI Lotto Stats", 22, GREEN, true));
+    note(stats, "Smart facts from past results stored on your phone. These are explainable"
+        + " counts—not AI predictions or tips for winning.");
+    if (insight == null) {
+      note(stats, "No stored draws for this game. Update results when online or add a published draw.");
     } else {
-      Draw d = ds.get(0);
-      add(latest, text("Latest available result", 14, GREEN, true));
-      add(latest, text(DATE.format(d.date), 20, TEXT, true));
+      add(stats, text(insight.drawCount + " recent available draws", 19, TEXT, true));
+      note(stats, insight.firstDate + " to " + insight.lastDate
+          + " · same game and number rules only");
+      LinearLayout p = row();
+      LinearLayout most = card();
+      add(most, text("MOST SEEN", 12, MUTED, true));
+      add(most, text(String.format(Locale.ROOT, "%02d", insight.mostNumber), 30, GREEN, true));
+      note(most, insight.mostCount + " of " + insight.drawCount + " draws");
+      LinearLayout least = card();
+      add(least, text("LEAST SEEN", 12, MUTED, true));
+      add(least, text(String.format(Locale.ROOT, "%02d", insight.leastNumber), 30, ORANGE, true));
+      note(least, insight.leastCount + " of " + insight.drawCount + " draws");
+      LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -2, 1);
+      lp.rightMargin = dp(4);
+      p.addView(most, lp);
+      lp = new LinearLayout.LayoutParams(0, -2, 1);
+      lp.leftMargin = dp(4);
+      p.addView(least, lp);
+      add(stats, p);
+      note(stats, "Last stored draw: " + insight.lastOdd + " odd, " + insight.lastEven
+          + " even numbers · total " + insight.lastTotal
+          + (insight.repeatsFromPrevious < 0 ? "" : " · " + insight.repeatsFromPrevious
+              + " repeated from the previous available draw"));
+      add(stats, button("Understand these stats  ›", false, () -> go("lab", "hotcold")));
+      add(stats, button("Explore more number patterns  ›", false,
+          () -> go("lab", "patterns")));
+    }
+    add(content, stats);
+
+    LinearLayout latest = card();
+    if (history.isEmpty()) {
+      add(latest, text("Latest result not stored yet", 19, TEXT, true));
+      note(latest, "The app can still make random number selections. Connect to the internet"
+          + " for updates, or enter published numbers.");
+      add(latest, button("Manage draw results", false, () -> go("home", "settings")));
+    } else {
+      Draw d = history.get(0);
+      add(latest, text("Latest saved result", 18, TEXT, true));
+      add(latest, text(DATE.format(d.date), 16, GREEN, true));
       add(latest, balls(d.numbers, d.powerBall, d.bonus, null));
       note(latest, sourceLabel(d));
-      add(latest, button("View draw details", false, () -> drawDetail(d, null)));
+      add(latest, button("See this result  ›", false, () -> drawDetail(d, null)));
     }
     add(content, latest);
+
+    add(content, text("What would you like to do?", 22, TEXT, true));
     primary(content, "Check my numbers", "home_check", () -> go("lab", "check"));
     add(content, button("Generate numbers", false, () -> go("lab", "generate")));
-    add(content, button("Explore history", false, () -> tab("results")));
-    note(content, "Research describes past results. It cannot predict a fair future draw.");
+    add(content, button("See past results", false, () -> tab("results")));
+    add(content, button("My saved numbers", false, () -> tab("numbers")));
+
+    LinearLayout tip = card();
+    add(tip, text("Need a hand?", 18, GREEN, true));
+    note(tip, "The easy-to-follow guide explains every feature, with answers to common questions.");
+    add(tip, button("Read the user manual  ›", false, () -> go("home", "library")));
+    add(tip, button("Frequently asked questions  ›", false, () -> go("home", "faq")));
+    add(content, tip);
+    note(content, "18+. Past results do not change the chance of a future fair draw.");
   }
 
   private View balls(int[] numbers, int pb, int bonus, int[] matched) {
