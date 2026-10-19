@@ -83,7 +83,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: LottoLab-0.4
+          name: LottoLab-0.5
           path: |
             lottolab-next/app/build/outputs/apk/debug/app-debug.apk
             lottolab-next/app/build/reports/tests/testDebugUnitTest/
