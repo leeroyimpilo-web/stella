@@ -548,6 +548,149 @@ public final class MainActivity extends Activity {
     else home();
   }
 
+  /** All features live in one accessible side drawer. Nothing requires an account. */
+  private void showDrawer() {
+    hideKeyboard();
+    if (drawer != null && drawer.isShowing()) {
+      drawer.dismiss();
+      return;
+    }
+    LinearLayout panel = column();
+    panel.setPadding(dp(16), dp(30), dp(16), dp(20));
+    panel.setBackgroundColor(0xFF071F2D);
+    add(panel, text("LOT TOLAB".replace(" ", ""), 14, GREEN, true));
+    add(panel, text("Pick a task", 25, TEXT, true));
+    note(panel, "Everything in one place. Tap to open.");
+    drawerSection(panel, "START HERE");
+    drawerOption(panel, "Home dashboard", "menu_home", () -> tab("home"));
+    drawerOption(panel, "Latest results", "menu_results", () -> tab("results"));
+    drawerOption(panel, "My saved numbers", "menu_numbers", () -> tab("numbers"));
+    drawerSection(panel, "MY NUMBERS");
+    drawerOption(panel, "Check a ticket", "menu_check", () -> go("lab", "check"));
+    drawerOption(panel, "Pick numbers", "menu_generate", () -> go("lab", "generate"));
+    drawerOption(panel, "Find my numbers in old draws", "menu_search", () -> go("lab", "search"));
+    drawerOption(panel, "Compare my lines", "menu_compare", () -> go("lab", "compare"));
+    drawerOption(panel, "My dated tickets", "menu_tickets", () -> go("numbers", "tickets"));
+    drawerSection(panel, "EXPLORE PAST RESULTS");
+    drawerOption(panel, "All research tools", "menu_lab", () -> tab("lab"));
+    drawerOption(panel, "Most and least seen", "menu_hotcold", () -> go("lab", "hotcold"));
+    drawerOption(panel, "How often numbers appeared", "menu_frequency", () -> go("lab", "frequency"));
+    drawerOption(panel, "When numbers last appeared", "menu_gaps", () -> go("lab", "gaps"));
+    drawerOption(panel, "Numbers that appeared together", "menu_pairs", () -> go("lab", "pairs"));
+    drawerOption(panel, "Draw patterns", "menu_patterns", () -> go("lab", "patterns"));
+    drawerSection(panel, "MORE TOOLS");
+    drawerOption(panel, "Full number systems", "menu_wheel", () -> go("lab", "wheel"));
+    drawerOption(panel, "Check repeated lines", "menu_coverage", () -> go("lab", "coverage"));
+    drawerOption(panel, "Understand the chances", "menu_odds", () -> go("lab", "odds"));
+    drawerOption(panel, "Plan my spending", "menu_budget", () -> go("numbers", "budget"));
+    drawerOption(panel, "Learn about randomness", "menu_simulate", () -> go("lab", "simulate"));
+    drawerSection(panel, "HELP AND DATA");
+    drawerOption(panel, "User manual library", "menu_library", () -> go("home", "library"));
+    drawerOption(panel, "Frequently asked questions", "menu_faq", () -> go("home", "faq"));
+    drawerOption(panel, "Update results and settings", "menu_settings", () -> go("home", "settings"));
+    note(panel, "18+ only. Past draws cannot predict future winning numbers.");
+    ScrollView scroll = new ScrollView(this);
+    scroll.setFillViewport(true);
+    scroll.addView(panel);
+    scroll.setBackgroundColor(0xFF071F2D);
+    int width = Math.min(dp(340), getResources().getDisplayMetrics().widthPixels - dp(36));
+    drawer = new PopupWindow(scroll, width, -1, true);
+    drawer.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFF071F2D));
+    drawer.setOutsideTouchable(true);
+    drawer.setElevation(dp(20));
+    drawer.setOnDismissListener(() -> drawer = null);
+    drawer.showAtLocation(root, Gravity.START | Gravity.TOP, 0, 0);
+  }
+
+  private void drawerSection(LinearLayout parent, String title) {
+    TextView t = text(title, 12, GREEN, true);
+    t.setPadding(dp(4), dp(16), 0, dp(3));
+    add(parent, t);
+  }
+
+  private void drawerOption(LinearLayout parent, String label, String tag, Runnable route) {
+    TextView b = button(label, false, route);
+    b.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+    b.setContentDescription(label);
+    b.setTag(tag);
+    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+    lp.bottomMargin = dp(6);
+    parent.addView(b, lp);
+  }
+
+  private static String simpleTip(String key) {
+    switch (key) {
+      case "check": return "Enter your numbers and choose the draw you want to check.";
+      case "generate": return "Get a random set of numbers, then save it if you like.";
+      case "search": return "Find out whether your numbers appeared in the saved draw history.";
+      case "compare": return "Look at up to six saved lines side by side.";
+      case "frequency": return "How often did each number show up in these past draws?";
+      case "hotcold": return "Most and least seen in the selected past draws—not future tips.";
+      case "gaps": return "See the last time each number appeared.";
+      case "pairs": return "Find which numbers appeared together in past draws.";
+      case "patterns": return "Explore simple facts about each saved draw.";
+      case "wheel": return "See all complete lines from a larger set before considering the cost.";
+      case "coverage": return "Find repeated lines and shared numbers.";
+      case "odds": return "Understand your mathematical chance, not a prediction.";
+      case "budget": return "Work out a limit before spending anything.";
+      case "simulate": return "An experiment with imaginary draws, not actual results.";
+      case "library": return "Short lessons. Everything here works offline.";
+      case "faq": return "Tap a question to read its answer.";
+      case "chapter": return "A clear, step-by-step explanation.";
+      case "settings": return "Refresh results, manage downloaded data and backups.";
+      default: return "";
+    }
+  }
+
+  private void userLibrary() {
+    note(content, "Start with any topic. No internet or sign-in needed.");
+    for (int i = 0; i < HelpLibrary.CHAPTERS.length; i++) {
+      final int chapter = i;
+      String[] item = HelpLibrary.CHAPTERS[i];
+      LinearLayout panel = card();
+      TextView open = button((i + 1) + ". " + item[0] + "  ›", false,
+          () -> openChapter(chapter));
+      open.setTag("chapter_" + i);
+      add(panel, open);
+      note(panel, item[1]);
+      add(content, panel);
+    }
+    primary(content, "Questions & answers", "library_faq", () -> go("home", "faq"));
+  }
+
+  private void openChapter(int index) {
+    chapterIndex = index;
+    go("home", "chapter");
+  }
+
+  private void userChapter() {
+    if (chapterIndex < 0 || chapterIndex >= HelpLibrary.CHAPTERS.length) {
+      note(content, "Choose a topic in the User manual library.");
+      return;
+    }
+    String[] topic = HelpLibrary.CHAPTERS[chapterIndex];
+    add(content, text(topic[0], 22, GREEN, true));
+    LinearLayout panel = card();
+    note(panel, topic[2]);
+    add(content, panel);
+    if (chapterIndex + 1 < HelpLibrary.CHAPTERS.length)
+      primary(content, "Next: " + HelpLibrary.CHAPTERS[chapterIndex + 1][0],
+          "chapter_next", () -> openChapter(chapterIndex + 1));
+    add(content, button("Back to all topics", false, () -> go("home", "library")));
+  }
+
+  private void userFaq() {
+    note(content, "Simple answers using no internet. For help with a tool, read the User manual.");
+    for (int i = 0; i < HelpLibrary.FAQ.length; i++) {
+      final int index = i;
+      TextView b = button(HelpLibrary.FAQ[i][0] + "  ›", false,
+          () -> alert(HelpLibrary.FAQ[index][0], HelpLibrary.FAQ[index][1]));
+      b.setTag("faq_" + i);
+      add(content, b);
+    }
+    primary(content, "Open the user manual", "faq_manual", () -> go("home", "library"));
+  }
+
   private void gameRow() {
     TextView b = button(game.title + "  ▾", false, this::chooseGame);
     b.setTag("choose_game");
