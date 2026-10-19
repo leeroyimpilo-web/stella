@@ -10,7 +10,7 @@ public class BetTipResultsTest {
   private static final String HEADER =
       "{\"api\":\"BetTip Draws API\",\"version\":\"v1\",\"builtAt\":\"2026-10-19T17:10:46Z\",";
 
-  @Test public void latestUsesPublishedSchemaAndMapsNewPowerBallXtra() {
+  @Test public void latestUsesPublishedSchemaAndMapsNewPowerBallXtra() throws Exception {
     String latest = HEADER + "\"resource\":\"lotto/latest\",\"data\":{"
         + "\"byGame\":{\"lotto\":{\"game\":\"lotto\",\"date\":\"2026-10-17\","
         + "\"numbers\":[2,4,6,10,15,46],\"bonusBall\":1,\"verified\":true,"
@@ -28,7 +28,7 @@ public class BetTipResultsTest {
     assertEquals(BetTipResults.DOCS, results.get(0).sourceUrl);
   }
 
-  @Test public void repeatedLatestRowMustMatchIdentically() {
+  @Test public void repeatedLatestRowMustMatchIdentically() throws Exception {
     String row = "{\"game\":\"daily-lotto\",\"date\":\"2026-10-18\","
         + "\"numbers\":[9,12,16,26,36],\"bonusBall\":null}";
     String latest = HEADER + "\"resource\":\"lotto/latest\",\"data\":{"
@@ -36,7 +36,7 @@ public class BetTipResultsTest {
     assertEquals(1, BetTipResults.parseLatest(latest, LocalDate.of(2026,10,19)).size());
   }
 
-  @Test public void historicalDataPreservesLegacyGameNamesAndIgnoresUnsupportedEra() {
+  @Test public void historicalDataPreservesLegacyGameNamesAndIgnoresUnsupportedEra() throws Exception {
     String history = HEADER + "\"resource\":\"lotto/draws\",\"data\":["
         + "{\"game\":\"powerball-plus\",\"date\":\"2025-12-02\","
         + "\"numbers\":[2,4,6,8,10],\"bonusBall\":19},"
@@ -56,7 +56,7 @@ public class BetTipResultsTest {
     assertEquals(19, results.get(2).powerBall);
   }
 
-  @Test public void futureNumbersAndDuplicateBallAreRejected() {
+  @Test public void futureNumbersAndDuplicateBallAreRejected() throws Exception {
     String fixture = HEADER + "\"resource\":\"lotto/latest\",\"data\":{"
         + "\"recent\":[{\"game\":\"daily-lotto\",\"date\":\"2026-10-20\","
         + "\"numbers\":[1,2,3,4,5],\"bonusBall\":null}]}}";
@@ -72,7 +72,7 @@ public class BetTipResultsTest {
     } catch (IllegalArgumentException expected) {}
   }
 
-  @Test public void unknownAPIFormatIsNeverImported() {
+  @Test public void unknownAPIFormatIsNeverImported() throws Exception {
     try {
       BetTipResults.parseLatest("{\"data\":{\"recent\":[]}}", LocalDate.of(2026,10,19));
       fail("wrong response envelope");
