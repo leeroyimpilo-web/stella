@@ -1,3 +1,12 @@
+# 0.5.0 — easier to use
+
+- Preserved LottoLab’s dark laboratory look, colors, native Android components, existing SQLite archive, saved tickets and package/signing identity.
+- Replaced the redundant four-button bottom bar with an accessible, vertically scrollable slide-out menu listing all features by everyday task.
+- Created a simple Home dashboard with last saved result and transparent historical “AI Lotto Stats” calculated on device from up to 30 eligible draws, clearly marked as observations rather than predictions.
+- Added a bundled offline User Manual Library (12 short chapters) and FAQs (13 answered questions), with direct navigation.
+- Simplified on-screen explanations and shortcuts without changing the lottery calculations or data ingestion.
+- Updated device navigation tests and added deterministic Smart Insights / manual content unit tests.
+
 # 0.4.0 — data engine (no UI redesign)
 
 - Locks the four-tab LottoLab UI and theme, retaining existing saved entries and application identity.
