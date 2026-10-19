@@ -1659,6 +1659,10 @@ public final class MainActivity extends Activity {
     heading(
         "Browse the draw archive",
         "Search published numbers and inspect where each record came from.");
+    note(content, "Data by BetTip (bettip.co.za) when downloaded online."
+        + " Each record shows its source; official prize verification is separate.");
+    add(content, button("BetTip data source & licence  ↗", false,
+        () -> openUrl(BetTipResults.DOCS)));
     gameRow();
     periodRow();
     EditText search = input(content, "Main numbers to find", "Optional: 4 12", query, false);
@@ -3322,7 +3326,7 @@ public final class MainActivity extends Activity {
     add(backup, button("Restore a backup", false, () -> openDocument(RESTORE)));
     add(content, backup);
     LinearLayout about = card();
-    add(about, text("LottoLab 0.6 · Data & statistics", 20, GREEN, true));
+    add(about, text("LottoLab 0.7 · BetTip results", 20, GREEN, true));
     note(
         about,
         "Native Android · Easy side menu · Offline history and help\n\n"
