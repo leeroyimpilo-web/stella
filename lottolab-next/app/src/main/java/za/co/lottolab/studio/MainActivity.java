@@ -800,8 +800,10 @@ public final class MainActivity extends Activity {
   }
 
   private String sourceLabel(Draw d) {
-    return d.verification.equals("feed")
-        ? "Downloaded result · confirm with operator"
+    return d.verification.equals("bettip")
+        ? "Data by BetTip (bettip.co.za) · not independently verified"
+        : d.verification.equals("feed")
+            ? "Downloaded result · confirm with operator"
         : d.verification.equals("bundled archive")
             ? "Saved offline history · confirm with operator"
             : "Imported / entered · confirm with operator";
@@ -942,6 +944,8 @@ public final class MainActivity extends Activity {
     add(tip, button("Read the user manual  ›", false, () -> go("home", "library")));
     add(tip, button("Frequently asked questions  ›", false, () -> go("home", "faq")));
     add(content, tip);
+    add(content, button("Data by BetTip · free results API  ↗", false,
+        () -> openUrl(BetTipResults.DOCS)));
     note(content, "18+. Past results do not change the chance of a future fair draw.");
   }
 
@@ -3197,8 +3201,9 @@ public final class MainActivity extends Activity {
     note(data, game.title + "\n" + coverageText(ds));
     note(
         data,
-        "Saved history works offline. Automatic updates use an optional public web feed, which"
-            + " may be unavailable. You can always enter a draw or import an archive.");
+        "Saved results work offline. LottoLab checks BetTip automatically when"
+            + " connected, keeps the latest winning numbers and catches up on archived draws."
+            + " You can still enter a published draw or import CSV.");
     add(
         data,
         button("Enter a published draw", false, () -> datePicker(defaultDate(), this::addDraw)));
@@ -3246,8 +3251,8 @@ public final class MainActivity extends Activity {
     add(content, data);
     LinearLayout feed = card();
     add(feed, text("Automatic updates", 20, GREEN, true));
-    note(feed, "LottoLab checks for newly published results when internet is available."
-        + " It catches up after being offline; saved history always works without data.");
+    note(feed, "BetTip's free results feed checks for new draws automatically when you"
+        + " have internet. History stays on your phone and works without data.");
     long last = store.preferences().getLong("last_sync", 0);
     note(feed, last == 0
         ? "Waiting for the first successful online check."
@@ -3259,8 +3264,11 @@ public final class MainActivity extends Activity {
       note(feed, "Online results currently unavailable. Stored draws are safe."
           + " Try Refresh Now when connected.");
     add(feed, button("Refresh Now", false, this::refreshFeed));
-    note(feed, "No API setup needed. The public results service is undocumented"
-        + " and can change. Check any prize claim with the official operator.");
+    note(feed, "No API key or settings needed. Latest results are checked regularly;"
+        + " full history is checked about weekly. Updates depend on Android scheduling."
+        + " BetTip is independent; confirm prize claims with the lottery operator.");
+    add(feed, button("About the free BetTip results feed  ↗", false,
+        () -> openUrl(BetTipResults.DOCS)));
     add(content, feed);
     LinearLayout notifications = card();
     add(notifications, text("Result notifications", 20, TEXT, true));
@@ -3319,10 +3327,10 @@ public final class MainActivity extends Activity {
         about,
         "Native Android · Easy side menu · Offline history and help\n\n"
             + "Current number-draw games and selected historical eras are supported. Sports pools"
-            + " are outside this number-draw build. Results update automatically over the internet"
-            + " using a public, undocumented feed. Official verification is not guaranteed."
-            + " Winners and payouts can be opened in an independent online prize archive;"
-            + " monetary payouts are not stored offline or used to claim a win.\n\n"
+            + " are outside this number-draw build. Results update from BetTip's free,"
+            + " publicly documented API (bettip.co.za/api) when a connection is available."
+            + " Third-party results are not independent operator certification."
+            + " Cash payouts are not stored offline or used to claim a win.\n\n"
             + "18+. Historical analysis cannot predict a fair future draw.");
     add(
         about,
@@ -3417,34 +3425,36 @@ public final class MainActivity extends Activity {
 
   private void refreshFeed() {
     String url = store.preferences().getString("feed_url", "");
-    if (url.isEmpty()) {
-      alert(
-          "No source connected",
-          "No approved automatic source is configured. Enter published numbers or import a CSV"
-              + " archive. An approved feed can be configured under automatic updates.");
-      return;
-    }
+    if (url.isEmpty() || OperatorResults.ENDPOINT.equals(url))
+      url = BetTipResults.LATEST;
     ProgressDialog progress = new ProgressDialog(this);
     progress.setMessage("Checking for results…");
     progress.setCancelable(false);
     progress.show();
+    final String source = url;
     worker.execute(
         () -> {
           ArchiveStore task = new ArchiveStore(getApplicationContext());
           try {
-            List<Draw> draws = FeedClient.fetch(url);
-            int changed = task.importDraws(draws);
-            task.preferences()
-                .edit()
-                .putLong("last_sync", System.currentTimeMillis())
-                .putString("sync_error", "")
-                .apply();
+            int changed;
+            String note = "";
+            if (BetTipResults.LATEST.equals(source)) {
+              BetTipResults.Sync sync = BetTipResults.synchronize(task);
+              changed = sync.changes;
+              note = sync.warning.isEmpty() ? "" : " · historical archive retry pending";
+            } else {
+              List<Draw> draws = FeedClient.fetch(source);
+              changed = task.importDraws(draws);
+              task.preferences().edit().putLong("last_sync", System.currentTimeMillis())
+                  .putString("sync_error", "").apply();
+            }
+            final String status = note;
             ResultUpdates.notifyAvailable(getApplicationContext(), task);
             post(
                 () -> {
                   progress.dismiss();
                   render();
-                  toast(changed + " new or corrected records saved.");
+                  toast(changed + " new or corrected records saved" + status + ".");
                 });
           } catch (Exception e) {
             task.preferences().edit().putString("sync_error", e.getMessage()).apply();
