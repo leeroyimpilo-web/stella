@@ -590,7 +590,7 @@ public final class MainActivity extends Activity {
     drawerSection(panel, "HELP AND DATA");
     drawerOption(panel, "User manual library", "menu_library", () -> go("home", "library"));
     drawerOption(panel, "Frequently asked questions", "menu_faq", () -> go("home", "faq"));
-    drawerOption(panel, "Update results and settings", "menu_settings", () -> go("home", "settings"));
+    drawerOption(panel, "Results, refresh & backup", "menu_settings", () -> go("home", "settings"));
     note(panel, "18+ only. Past draws cannot predict future winning numbers.");
     ScrollView scroll = new ScrollView(this);
     scroll.setFillViewport(true);
@@ -800,8 +800,10 @@ public final class MainActivity extends Activity {
   }
 
   private String sourceLabel(Draw d) {
-    return d.verification.equals("feed")
-        ? "Downloaded result · confirm with operator"
+    return d.verification.equals("bettip")
+        ? "Data by BetTip (bettip.co.za) · not independently verified"
+        : d.verification.equals("feed")
+            ? "Downloaded result · confirm with operator"
         : d.verification.equals("bundled archive")
             ? "Saved offline history · confirm with operator"
             : "Imported / entered · confirm with operator";
@@ -868,6 +870,27 @@ public final class MainActivity extends Activity {
       add(stats, button("Explore more number patterns  ›", false,
           () -> go("lab", "patterns")));
     }
+    if (insight != null) {
+      DrawStats.Summary summary = DrawStats.summarize(game, history, 30);
+      if (summary != null) {
+        note(stats, "Top pairs: " + summary.popularPairs);
+        note(stats, "Top triples: " + summary.popularTriples);
+        note(stats, String.format(Locale.ENGLISH,
+            "Average main-number total %.1f · average odd numbers %.1f",
+            summary.averageSum, summary.averageOdd));
+      }
+      add(stats, button("More statistics · 30 / 100 / all draws  ›", false, () -> {
+        final String[] choices = {"Last 30 draws", "Last 100 draws", "All available draws"};
+        new AlertDialog.Builder(this)
+            .setTitle(game.title + " history statistics")
+            .setItems(choices, (dialog, choice) -> {
+              int limit = choice == 0 ? 30 : choice == 1 ? 100 : 0;
+              DrawStats.Summary value = DrawStats.summarize(game, store.draws(game, 0), limit);
+              alert(choices[choice] + " · " + game.shortName,
+                  value == null ? "No saved draws yet." : value.fullReport());
+            }).setNegativeButton("Close", null).show();
+      }));
+    }
     add(content, stats);
 
     LinearLayout latest = card();
@@ -883,8 +906,31 @@ public final class MainActivity extends Activity {
       add(latest, balls(d.numbers, d.powerBall, d.bonus, null));
       note(latest, sourceLabel(d));
       add(latest, button("See this result  ›", false, () -> drawDetail(d, null)));
+      add(latest, button("View winners & prize payouts online  ›", false,
+          () -> openUrl(prizeResultsUrl(d))));
     }
     add(content, latest);
+
+    List<TicketRecord> savedTickets = store.tickets();
+    if (!savedTickets.isEmpty()) {
+      LinearLayout matchesCard = card();
+      add(matchesCard, text("My dated tickets · draw matches", 19, GREEN, true));
+      note(matchesCard, "Automatically compared against your locally saved results."
+          + " Unavailable draws remain unknown, never counted as losses.");
+      Set<Game> gamesNeeded = new HashSet<>();
+      for (TicketRecord t : savedTickets) gamesNeeded.add(t.entry.game);
+      List<Draw> known = new ArrayList<>();
+      for (Game requested : gamesNeeded) known.addAll(store.draws(requested, 0));
+      List<TicketMatches.Item> results = TicketMatches.evaluate(savedTickets, known);
+      for (int i = 0; i < Math.min(5, results.size()); i++) {
+        TicketMatches.Item result = results.get(i);
+        note(matchesCard, (result.ticket.purchased ? "Recorded purchase: " : "Planned: ")
+            + result.text());
+      }
+      add(matchesCard, button("Review all saved tickets  ›", false,
+          () -> go("numbers", "tickets")));
+      add(content, matchesCard);
+    }
 
     add(content, text("What would you like to do?", 22, TEXT, true));
     primary(content, "Check my numbers", "home_check", () -> go("lab", "check"));
@@ -898,6 +944,8 @@ public final class MainActivity extends Activity {
     add(tip, button("Read the user manual  ›", false, () -> go("home", "library")));
     add(tip, button("Frequently asked questions  ›", false, () -> go("home", "faq")));
     add(content, tip);
+    add(content, button("Data by BetTip · free results API  ↗", false,
+        () -> openUrl(BetTipResults.DOCS)));
     note(content, "18+. Past results do not change the chance of a future fair draw.");
   }
 
@@ -1611,6 +1659,10 @@ public final class MainActivity extends Activity {
     heading(
         "Browse the draw archive",
         "Search published numbers and inspect where each record came from.");
+    note(content, "Data by BetTip (bettip.co.za) when downloaded online."
+        + " Each record shows its source; official prize verification is separate.");
+    add(content, button("BetTip data source & licence  ↗", false,
+        () -> openUrl(BetTipResults.DOCS)));
     gameRow();
     periodRow();
     EditText search = input(content, "Main numbers to find", "Optional: 4 12", query, false);
@@ -1715,6 +1767,8 @@ public final class MainActivity extends Activity {
     add(p, balls(d.numbers, d.powerBall, d.bonus, e == null ? null : e.numbers));
     note(p, sourceLabel(d));
     add(p, button("Draw details  ›", false, () -> drawDetail(d, e)));
+    add(p, button("Winners & prize amounts  ›", false,
+        () -> openUrl(prizeResultsUrl(d))));
     add(parent, p);
   }
 
@@ -1726,6 +1780,28 @@ public final class MainActivity extends Activity {
         + (d.fetchedAt.isEmpty() ? "not recorded" : d.fetchedAt)
         + "\nRule period: "
         + d.ruleId;
+  }
+
+  /** Third-party published draw-by-draw payouts; no cash amount is inferred from matches. */
+  private String prizeResultsUrl(Draw d) {
+    String slug;
+    switch (d.game) {
+      case LOTTO: slug = "lotto"; break;
+      case PLUS1: slug = "lotto-plus-1"; break;
+      case PLUS2: slug = "lotto-plus-2"; break;
+      case MAX5: slug = "lotto-5-max"; break;
+      case POWERBALL: slug = "powerball"; break;
+      case XTRA: slug = "powerball-plus"; break;
+      case POWERPLUS: slug = "powerball-plus"; break;
+      case DAILY: slug = "daily-lotto"; break;
+      case DAILYPLUS: slug = "daily-lotto-plus"; break;
+      default: slug = "lotto";
+    }
+    String dd = String.valueOf(d.date.getDayOfMonth());
+    String month = d.date.getMonth().getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH)
+        .toLowerCase(Locale.ROOT);
+    return "https://bettip.co.za/" + slug + "/results/" + dd + "-"
+        + month + "-" + d.date.getYear() + "/";
   }
 
   private void drawDetail(Draw d, Entry e) {
@@ -1741,7 +1817,9 @@ public final class MainActivity extends Activity {
             + sourceDescription(d)
             + "\nArchived corrections: "
             + store.revisionCount(d)
-            + "\n\nPrize divisions and payouts are not connected.";
+            + "\n\nWinners and prize payouts: a public prize breakdown can be opened"
+            + " from the Results screen when online. This independent archive is not"
+            + " prize certification; validate tickets with the lottery operator.";
     new AlertDialog.Builder(this)
         .setTitle("Draw record")
         .setMessage(msg)
@@ -3127,8 +3205,9 @@ public final class MainActivity extends Activity {
     note(data, game.title + "\n" + coverageText(ds));
     note(
         data,
-        "Saved history works offline. Automatic updates use an optional public web feed, which"
-            + " may be unavailable. You can always enter a draw or import an archive.");
+        "Saved results work offline. LottoLab checks BetTip automatically when"
+            + " connected, keeps the latest winning numbers and catches up on archived draws."
+            + " You can still enter a published draw or import CSV.");
     add(
         data,
         button("Enter a published draw", false, () -> datePicker(defaultDate(), this::addDraw)));
@@ -3175,90 +3254,25 @@ public final class MainActivity extends Activity {
                         + " imports.")));
     add(content, data);
     LinearLayout feed = card();
-    add(feed, text("Optional automatic updates", 20, TEXT, true));
+    add(feed, text("Automatic updates", 20, GREEN, true));
+    note(feed, "BetTip's free results feed checks for new draws automatically when you"
+        + " have internet. History stays on your phone and works without data.");
     long last = store.preferences().getLong("last_sync", 0);
-    note(
-        feed,
-        last == 0
-            ? "No automatic refresh has completed."
-            : "Last successful refresh: " + Instant.ofEpochMilli(last));
+    note(feed, last == 0
+        ? "Waiting for the first successful online check."
+        : "Last successful check: "
+            + Instant.ofEpochMilli(last).atZone(ZoneId.of("Africa/Johannesburg"))
+                .format(DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", Locale.ENGLISH)));
     String failed = store.preferences().getString("sync_error", "");
     if (!failed.isEmpty())
-      note(feed, "Last update failed: " + failed + "\nCached records have been kept.");
-    CheckBox advanced = new CheckBox(this);
-    advanced.setText("Configure an approved data source");
-    advanced.setTextColor(TEXT);
-    advanced.setMinHeight(dp(48));
-    add(feed, advanced);
-    LinearLayout f = column();
-    f.setVisibility(View.GONE);
-    add(feed, f);
-    EditText url =
-        input(
-            f,
-            "HTTPS results-feed address",
-            "An approved JSON feed URL",
-            store.preferences().getString("feed_url", ""),
-            false);
-    url.setInputType(
-        android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_URI);
-    note(
-        f,
-        "Use a source you have permission to access. Setting a URL does not make its data official"
-            + " or independently verified.");
-    add(
-        f,
-        button(
-            "Save data source",
-            false,
-            () -> {
-              try {
-                String value = url.getText().toString().trim();
-                if (!value.isEmpty()) {
-                  java.net.URL u = new java.net.URL(value);
-                  if (!u.getProtocol().equals("https") || u.getHost().isEmpty())
-                    throw new IllegalArgumentException();
-                }
-                store.preferences().edit().putString("feed_url", value).apply();
-                ResultUpdates.schedule(this);
-                toast("Data-source setting saved.");
-              } catch (Exception e) {
-                url.setError("Enter a valid HTTPS address or leave blank.");
-              }
-            }));
-    advanced.setOnCheckedChangeListener((v, on) -> f.setVisibility(on ? View.VISIBLE : View.GONE));
-    note(feed, "Optional: use the National Lottery website's public results service. "
-        + "Its undocumented interface may change; downloaded records are not independent prize verification.");
-    add(feed, button("Connect National Lottery results", false, () ->
-        new AlertDialog.Builder(this)
-            .setTitle("Use public lottery results?")
-            .setMessage("This connects to the National Lottery website's public results endpoint. "
-                + "It is not a guaranteed or supported API and may become unavailable. "
-                + "Any existing custom feed address will be replaced. Saved tickets and imported history stay intact. "
-                + "Always confirm numbers and prizes with the operator.")
-            .setNegativeButton("Cancel", null)
-            .setPositiveButton("Connect and refresh", (dialog, which) -> {
-              store.preferences().edit().putString("feed_url", OperatorResults.ENDPOINT).apply();
-              ResultUpdates.schedule(this);
-              refreshFeed();
-            }).show()));
-    add(feed, button("Refresh results", false, this::refreshFeed));
-    CheckBox background =
-        check(
-            "Check periodically in the background",
-            store.preferences().getBoolean("background_updates", false));
-    add(feed, background);
-    background.setOnCheckedChangeListener(
-        (v, on) -> {
-          store.preferences().edit().putBoolean("background_updates", on).apply();
-          ResultUpdates.schedule(this);
-          if (on && store.preferences().getString("feed_url", "").isEmpty())
-            toast("Configure an approved data source to enable updates.");
-        });
-    note(
-        feed,
-        "Android schedules periodic checks when a source is configured. Connection and battery"
-            + " settings affect update timing.");
+      note(feed, "Online results currently unavailable. Stored draws are safe."
+          + " Try Refresh Now when connected.");
+    add(feed, button("Refresh Now", false, this::refreshFeed));
+    note(feed, "No API key or settings needed. Latest results are checked regularly;"
+        + " full history is checked about weekly. Updates depend on Android scheduling."
+        + " BetTip is independent; confirm prize claims with the lottery operator.");
+    add(feed, button("About the free BetTip results feed  ↗", false,
+        () -> openUrl(BetTipResults.DOCS)));
     add(content, feed);
     LinearLayout notifications = card();
     add(notifications, text("Result notifications", 20, TEXT, true));
@@ -3269,19 +3283,22 @@ public final class MainActivity extends Activity {
     add(notifications, enable);
     enable.setOnCheckedChangeListener(
         (v, on) -> {
-          store.preferences().edit().putBoolean("notifications", on).apply();
+          android.content.SharedPreferences.Editor choice =
+              store.preferences().edit().putBoolean("notifications", on);
+          for (Game current : Game.current())
+            choice.putBoolean("notify_" + current.name(), on);
+          choice.apply();
           if (on
               && Build.VERSION.SDK_INT >= 33
               && checkSelfPermission("android.permission.POST_NOTIFICATIONS")
                   != android.content.pm.PackageManager.PERMISSION_GRANTED)
             requestPermissions(new String[] {"android.permission.POST_NOTIFICATIONS"}, NOTIFY);
         });
-    for (Game g : Game.current()) {
-      CheckBox c = check(g.title, store.preferences().getBoolean("notify_" + g.name(), false));
-      c.setOnCheckedChangeListener(
-          (v, on) -> store.preferences().edit().putBoolean("notify_" + g.name(), on).apply());
-      add(notifications, c);
-    }
+    // One understandable notification choice instead of six separate game switches.
+    // Refreshing and saving results never requires notification permission.
+    if (store.preferences().getBoolean("notifications", false))
+      for (Game current : Game.current())
+        store.preferences().edit().putBoolean("notify_" + current.name(), true).apply();
     note(
         notifications,
         "Notifications follow incoming result updates. They identify feed/imported records and do"
@@ -3309,14 +3326,15 @@ public final class MainActivity extends Activity {
     add(backup, button("Restore a backup", false, () -> openDocument(RESTORE)));
     add(content, backup);
     LinearLayout about = card();
-    add(about, text("LottoLab 0.5", 20, GREEN, true));
+    add(about, text("LottoLab 0.7 · BetTip results", 20, GREEN, true));
     note(
         about,
         "Native Android · Easy side menu · Offline history and help\n\n"
             + "Current number-draw games and selected historical eras are supported. Sports pools"
-            + " are outside this number-draw build. An optional public National Lottery website"
-            + " results adapter can be connected; it is not independently verified and may"
-            + " become unavailable. Verified prize payouts are not connected.\n\n"
+            + " are outside this number-draw build. Results update from BetTip's free,"
+            + " publicly documented API (bettip.co.za/api) when a connection is available."
+            + " Third-party results are not independent operator certification."
+            + " Cash payouts are not stored offline or used to claim a win.\n\n"
             + "18+. Historical analysis cannot predict a fair future draw.");
     add(
         about,
@@ -3411,34 +3429,36 @@ public final class MainActivity extends Activity {
 
   private void refreshFeed() {
     String url = store.preferences().getString("feed_url", "");
-    if (url.isEmpty()) {
-      alert(
-          "No source connected",
-          "No approved automatic source is configured. Enter published numbers or import a CSV"
-              + " archive. An approved feed can be configured under automatic updates.");
-      return;
-    }
+    if (url.isEmpty() || OperatorResults.ENDPOINT.equals(url))
+      url = BetTipResults.LATEST;
     ProgressDialog progress = new ProgressDialog(this);
     progress.setMessage("Checking for results…");
     progress.setCancelable(false);
     progress.show();
+    final String source = url;
     worker.execute(
         () -> {
           ArchiveStore task = new ArchiveStore(getApplicationContext());
           try {
-            List<Draw> draws = FeedClient.fetch(url);
-            int changed = task.importDraws(draws);
-            task.preferences()
-                .edit()
-                .putLong("last_sync", System.currentTimeMillis())
-                .putString("sync_error", "")
-                .apply();
+            int changed;
+            String note = "";
+            if (BetTipResults.LATEST.equals(source)) {
+              BetTipResults.Sync sync = BetTipResults.synchronize(task);
+              changed = sync.changes;
+              note = sync.warning.isEmpty() ? "" : " · historical archive retry pending";
+            } else {
+              List<Draw> draws = FeedClient.fetch(source);
+              changed = task.importDraws(draws);
+              task.preferences().edit().putLong("last_sync", System.currentTimeMillis())
+                  .putString("sync_error", "").apply();
+            }
+            final String status = note;
             ResultUpdates.notifyAvailable(getApplicationContext(), task);
             post(
                 () -> {
                   progress.dismiss();
                   render();
-                  toast(changed + " new or corrected records saved.");
+                  toast(changed + " new or corrected records saved" + status + ".");
                 });
           } catch (Exception e) {
             task.preferences().edit().putString("sync_error", e.getMessage()).apply();

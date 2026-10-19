@@ -34,8 +34,10 @@ public class SmokeInstrumentation extends Instrumentation {
       folder = new File(c.getExternalFilesDir(null), "qa");
       if (!folder.exists() && !folder.mkdirs()) throw new IOException("Cannot create QA folder");
       c.deleteDatabase("lottolab_studio.db");
-      // Disable network jobs only inside this test: offline bootstrap must be deterministic.
+      // The automated offline migration and empty-cache assertions must not
+      // race against the production app's always-on BetTip update scheduler.
       c.getSharedPreferences("lottolab_studio", Context.MODE_PRIVATE).edit().clear()
+          .putBoolean("qa_disable_updates", true)
           .putString("feed_url", "").putBoolean("background_updates", false).commit();
       testOperatorParsing();
       date = LocalDate.now(ZoneId.of("Africa/Johannesburg"));

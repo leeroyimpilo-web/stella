@@ -16,14 +16,24 @@ public final class ResultUpdates extends JobService {
   public static void schedule(Context c) {
     ArchiveStore store = new ArchiveStore(c);
     android.content.SharedPreferences prefs = store.preferences();
-    // Initial installation is automatic. Existing explicit choices always take precedence.
-    if (!prefs.contains("feed_url"))
-      prefs.edit().putString("feed_url", OperatorResults.ENDPOINT).apply();
-    if (!prefs.contains("background_updates"))
-      prefs.edit().putBoolean("background_updates", true).apply();
-    boolean enabled =
-        !prefs.getString("feed_url", "").isEmpty()
-            && prefs.getBoolean("background_updates", true);
+    // Explicit instrumentation-only offline mode: avoids background downloads
+    // racing with the controlled migration, empty-cache and saved-ticket tests.
+    // The production app never sets this preference.
+    if (prefs.getBoolean("qa_disable_updates", false)) {
+      JobScheduler scheduler = (JobScheduler) c.getSystemService(JOB_SCHEDULER_SERVICE);
+      scheduler.cancel(PERIODIC_JOB);
+      scheduler.cancel(CONNECTED_JOB);
+      store.close();
+      return;
+    }
+    // Upgrade the old optional public-website feed automatically to BetTip.
+    // Preserve a user's previously configured custom approved HTTPS feed.
+    String previous = prefs.getString("feed_url", "");
+    if (previous.trim().isEmpty() || OperatorResults.ENDPOINT.equals(previous))
+      prefs.edit().putString("feed_url", BetTipResults.LATEST).apply();
+    // Automatic updates are a core LottoLab feature, not an opt-in setting.
+    prefs.edit().putBoolean("background_updates", true).apply();
+    boolean enabled = true;
     JobScheduler jobs = (JobScheduler) c.getSystemService(JOB_SCHEDULER_SERVICE);
     ComponentName service = new ComponentName(c, ResultUpdates.class);
     if (enabled) {
@@ -34,7 +44,8 @@ public final class ResultUpdates extends JobService {
               .setPersisted(true)
               .build());
       // Network-constrained catch-up job on an app launch after prolonged offline use.
-      long last = prefs.getLong("last_attempt", 0);
+      long last = Math.max(
+          prefs.getLong("last_attempt", 0), prefs.getLong("last_sync", 0));
       if (System.currentTimeMillis() - last > SIX_HOURS)
         jobs.schedule(
             new JobInfo.Builder(CONNECTED_JOB, service)
@@ -56,19 +67,23 @@ public final class ResultUpdates extends JobService {
               ArchiveStore store = new ArchiveStore(this);
               try {
                 store.preferences().edit().putLong("last_attempt", System.currentTimeMillis()).apply();
-                List<Draw> draws = FeedClient.fetch(store.preferences().getString("feed_url", ""));
+                String source = store.preferences().getString("feed_url", BetTipResults.LATEST);
                 if (!stopped) {
-                  int changed = store.importDraws(draws);
-                  store
-                      .preferences()
-                      .edit()
-                      .putLong("last_sync", System.currentTimeMillis())
-                      .putString("sync_error", "")
-                      .apply();
-                  if (changed > 0) notifyAvailable(this, store);
+                  int changed;
+                  if (BetTipResults.LATEST.equals(source)) {
+                    changed = BetTipResults.synchronize(store).changes;
+                  } else {
+                    changed = store.importDraws(FeedClient.fetch(source));
+                    store.preferences().edit()
+                        .putLong("last_sync", System.currentTimeMillis())
+                        .putString("sync_error", "").apply();
+                  }
+                  if (changed > 0 && !stopped) notifyAvailable(this, store);
                 }
               } catch (Exception e) {
-                store.preferences().edit().putString("sync_error", e.getMessage()).apply();
+                // Preserve all cached results. Next network-constrained job retries.
+                store.preferences().edit().putString("sync_error",
+                    e.getClass().getSimpleName() + ": " + e.getMessage()).apply();
               } finally {
                 store.close();
                 if (!stopped) jobFinished(params, false);
@@ -118,7 +133,8 @@ public final class ResultUpdates extends JobService {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         String title = g.shortName + " · " + d.date;
         String message =
-            (d.verification.equals("feed") ? "New feed result" : "New imported result")
+            ((d.verification.equals("feed") || d.verification.equals("bettip"))
+                ? "New downloaded result" : "New imported result")
                 + ". Tap to check your numbers; confirm with the official result.";
         manager.notify(
             d.key().hashCode(),
