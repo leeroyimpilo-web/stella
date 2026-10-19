@@ -56,7 +56,8 @@ public final class BetTipResults {
   public static Sync synchronize(ArchiveStore store) throws Exception {
     LocalDate today = LocalDate.now(SOUTH_AFRICA);
     List<Draw> recent = parseLatest(download(LATEST, 2 * 1024 * 1024), today);
-    int changed = store.importDraws(recent);
+    // Import history first so the smaller fresh feed takes precedence on any overlap.
+    int changed = 0;
     SharedPreferences prefs = store.preferences();
     long now = System.currentTimeMillis();
     long lastArchive = prefs.getLong(ARCHIVE_STAMP, 0);
@@ -76,6 +77,7 @@ public final class BetTipResults {
             + e.getClass().getSimpleName();
       }
     }
+    changed += store.importDraws(recent);
     prefs.edit()
         .putLong("last_sync", System.currentTimeMillis())
         .putString("sync_error", warning)
