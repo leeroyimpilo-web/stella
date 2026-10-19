@@ -28,6 +28,8 @@ public final class MainActivity extends Activity {
   private ArchiveStore store;
   private long viewedRevision;
   private LinearLayout root, toolbar, navigation, content, output;
+  private PopupWindow drawer;
+  private int chapterIndex = 0;
   private Game game = Game.LOTTO;
   private String tab = "home",
       page = "",
@@ -75,6 +77,7 @@ public final class MainActivity extends Activity {
       group = state.getString("group", "");
       ruleId = state.getString("ruleId", ruleId);
       window = state.getInt("window", 100);
+      chapterIndex = state.getInt("chapterIndex", 0);
       query = state.getString("query", "");
       dateFrom = state.getString("from", "");
       dateTo = state.getString("to", "");
@@ -201,6 +204,7 @@ public final class MainActivity extends Activity {
     b.putString("group", group);
     b.putString("ruleId", ruleId);
     b.putInt("window", window);
+    b.putInt("chapterIndex", chapterIndex);
     b.putString("query", query);
     b.putString("from", dateFrom);
     b.putString("to", dateTo);
@@ -228,6 +232,7 @@ public final class MainActivity extends Activity {
 
   @Override
   protected void onDestroy() {
+    if (drawer != null) drawer.dismiss();
     worker.shutdown();
     store.close();
     super.onDestroy();
@@ -251,6 +256,7 @@ public final class MainActivity extends Activity {
   }
 
   private void go(String destination, String tool) {
+    if (drawer != null) drawer.dismiss();
     back.push(new String[] {tab, page, group});
     tab = destination;
     page = tool;
@@ -261,6 +267,7 @@ public final class MainActivity extends Activity {
   }
 
   private void tab(String key) {
+    if (drawer != null) drawer.dismiss();
     back.clear();
     tab = key;
     page = "";
@@ -442,6 +449,12 @@ public final class MainActivity extends Activity {
         return "Settings & data";
       case "tickets":
         return "My dated tickets";
+      case "library":
+        return "User guide";
+      case "faq":
+        return "Questions & answers";
+      case "chapter":
+        return "User manual";
       case "group":
         return group;
       default:
