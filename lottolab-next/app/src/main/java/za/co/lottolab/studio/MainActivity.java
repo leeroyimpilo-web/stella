@@ -670,6 +670,7 @@ public final class MainActivity extends Activity {
     }
     String[] topic = HelpLibrary.CHAPTERS[chapterIndex];
     add(content, text(topic[0], 22, GREEN, true));
+    note(content, topic[1]);
     LinearLayout panel = card();
     note(panel, topic[2]);
     add(content, panel);
