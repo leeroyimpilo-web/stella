@@ -468,73 +468,26 @@ public final class MainActivity extends Activity {
     if (isFinishing() || isDestroyed()) return;
     toolbar.removeAllViews();
     toolbar.setPadding(dp(10), dp(4), dp(10), 0);
+    TextView openMenu = button("☰", false, this::showDrawer);
+    openMenu.setTag("menu_toggle");
+    openMenu.setContentDescription("Open the LottoLab side menu");
+    toolbar.addView(openMenu, new LinearLayout.LayoutParams(dp(52), -2));
     if (!page.isEmpty()) {
-      TextView b = button("‹", false, this::goBack);
-      b.setContentDescription("Back");
-      toolbar.addView(b, new LinearLayout.LayoutParams(dp(48), -2));
-    } else {
-      ConsoleArt.Icon icon = new ConsoleArt.Icon(this, "lab", GREEN);
-      toolbar.addView(icon, new LinearLayout.LayoutParams(dp(36), dp(36)));
+      TextView backButton = button("‹", false, this::goBack);
+      backButton.setContentDescription("Back");
+      toolbar.addView(backButton, new LinearLayout.LayoutParams(dp(48), -2));
     }
-    TextView brand = text(page.isEmpty() ? pageTitle() : "LottoLab", 24, TEXT, true);
-    brand.setPadding(dp(10), 0, 0, 0);
+    TextView brand = text(pageTitle(), page.isEmpty() ? 23 : 19, TEXT, true);
+    brand.setPadding(dp(8), 0, 0, 0);
+    brand.setSingleLine(true);
+    brand.setEllipsize(android.text.TextUtils.TruncateAt.END);
     toolbar.addView(brand, new LinearLayout.LayoutParams(0, -2, 1));
-    TextView menu =
-        button(
-            "⋮",
-            false,
-            () ->
-                new AlertDialog.Builder(this)
-                    .setTitle("LottoLab")
-                    .setItems(
-                        new String[] {"Settings & data", "How to use LottoLab", "About the maths"},
-                        (d, i) -> {
-                          if (i == 0) go(tab, "settings");
-                          if (i == 1)
-                            alert(
-                                "Four places. One clear task.",
-                                "Home: start a check, generate a line or explore history.\n\n"
-                                    + "Results: browse the numbers and inspect their sources.\n\n"
-                                    + "Lotto Lab: choose a tool, set your options and run it.\n\n"
-                                    + "My Numbers: saved lines, dated tickets, spending and"
-                                    + " exports.\n\n"
-                                    + "Saved lines are notes. Add a dated ticket when you want to"
-                                    + " track a draw.");
-                          if (i == 2) maths();
-                        })
-                    .show());
-    menu.setContentDescription("Settings and help");
-    toolbar.addView(menu, new LinearLayout.LayoutParams(dp(48), -2));
-    navigation.removeAllViews();
-    navigation.setPadding(dp(6), dp(8), dp(6), dp(8));
-    navigation.setBackgroundColor(0xFF0C2431);
-    String[] names = {"Home", "Results", "Lotto Lab", "My Numbers"},
-        keys = {"home", "results", "lab", "numbers"},
-        icons = {"home", "history", "lab", "vault"};
-    for (int i = 0; i < 4; i++) {
-      String key = keys[i];
-      boolean selected = tab.equals(key);
-      LinearLayout item = column();
-      item.setGravity(Gravity.CENTER);
-      item.setPadding(dp(3), dp(5), dp(3), dp(5));
-      item.setMinimumHeight(dp(62));
-      item.setTag("tab_" + key);
-      item.setContentDescription(names[i] + (selected ? ", selected" : ""));
-      item.setSelected(selected);
-      item.setFocusable(true);
-      item.setClickable(true);
-      if (selected) item.setBackground(shape(0xFF24454A, 0, 12));
-      ConsoleArt.Icon icon = new ConsoleArt.Icon(this, icons[i], selected ? GREEN : MUTED);
-      item.addView(icon, new LinearLayout.LayoutParams(dp(23), dp(23)));
-      TextView label = text(names[i], 11, selected ? GREEN : MUTED, selected);
-      label.setGravity(Gravity.CENTER);
-      item.addView(label);
-      item.setOnClickListener(v -> tab(key));
-      navigation.addView(item, new LinearLayout.LayoutParams(0, -2, 1));
-    }
+    // The drawer contains all destinations. Removing duplicate bottom tabs
+    // leaves more screen space for a single clear task.
+    navigation.setVisibility(View.GONE);
     content.removeAllViews();
     output = null;
-    if (!page.isEmpty() && !page.equals("group")) heading(pageTitle(), "");
+    if (!page.isEmpty() && !page.equals("group")) heading(pageTitle(), simpleTip(page));
     switch (page) {
       case "group":
         toolGroup();
@@ -578,6 +531,15 @@ public final class MainActivity extends Activity {
         return;
       case "tickets":
         tickets();
+        return;
+      case "library":
+        userLibrary();
+        return;
+      case "chapter":
+        userChapter();
+        return;
+      case "faq":
+        userFaq();
         return;
     }
     if (tab.equals("results")) history();
