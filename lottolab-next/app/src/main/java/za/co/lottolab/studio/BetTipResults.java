@@ -165,7 +165,7 @@ public final class BetTipResults {
     return out;
   }
 
-  private static void collect(Map<String, Draw> rows, JSONObject record, LocalDate asOf) {
+  private static void collect(Map<String, Draw> rows, JSONObject record, LocalDate asOf) throws JSONException {
     String name = record.optString("game", "").trim().toLowerCase(Locale.ROOT);
     String when = record.optString("date", "");
     if (name.isEmpty() || when.isEmpty()) return; // Not a published draw.
