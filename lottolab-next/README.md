@@ -1,4 +1,4 @@
-# LottoLab 0.6
+# LottoLab 0.7
 
 A native Android lottery workspace with four clear tabs. This upgrades the existing `lottolab-next` project and retains application ID `za.co.lottolab.studio`, its SQLite database and saved preferences. It uses the existing Java/native Android stack rather than replacing the app with a WebView or introducing a new package.
 
@@ -153,3 +153,46 @@ Further production work: obtain permission and a documented provider feed for si
 division data (jackpot, rollover, draw ID, division match definition, winners and payout
 amount), implement audited import and non-destructive offline storage, then reconcile each
 result against the operator before adding monetary prize estimates.
+
+
+## 0.7 — BetTip draw sync (key-free, attributed)
+
+The app is now wired to the public [BetTip Draws API](https://bettip.co.za/api/).
+The documented free data licence requires a visible BetTip link. LottoLab remains
+an independent research app and does not claim official operator certification.
+
+- Default automatic refresh uses `GET /api/v1/lotto/latest.json`, over HTTPS,
+  typically on Android's network-constrained six-hour WorkScheduler cycle and on
+  opportunistic catch-up after extended offline periods.
+- `GET /api/v1/lotto/draws.json` imports the available supported historical
+  game eras once on first successful online sync and then roughly every seven
+  days, to avoid hammering the archive service. A manual Refresh Now also
+  downloads this archive when it is due.
+- Only records with valid actual published draw dates, valid number ranges,
+  correct game identities, matching rule eras and the required special balls are
+  accepted. Provider 'official' or 'verified' flags are *not* independent verification.
+- When the latest feed succeeds but the larger archive fails, the latest facts
+  remain saved and history is retried later. If all network work fails, existing
+  offline results and saved selections are untouched.
+- Current and historical `powerball-plus` labels map respectively to PowerBall
+  XTRA (after 1 June 2026) and archive-only PowerBall Plus (before 1 June 2026).
+  LOTTO Plus 2, LOTTO 5 MAX and retired Daily Lotto Plus are mapped by era.
+- Previously automatically selected unofficial operator-site endpoints are
+  migrated to BetTip, while explicitly configured third-party approved HTTPS
+  feeds remain intact. There is no account, API key or manual source setup.
+- Linked BetTip source attribution appears in the UI and the app retains existing
+  native screens, database, user tickets, backups and package ID.
+- BetTip additionally documents `GET /api/v1/lotto/payouts.json`. Its prize
+  breakdown structure has *not yet* been validated and therefore financial
+  payouts are not silently imported or calculated. Historical ticket comparisons
+  remain factual number matches with no verified monetary payout.
+- At the time of integration, BetTip's documented latest payload listed
+  `lotto`, `lotto-plus-1`, `powerball`, `powerball-plus` (PowerBall XTRA),
+  and `daily-lotto`. Game coverage may change. The app will never invent
+  absent Lotto 5 Max draws or pretend missing published results are losses.
+
+Automated parser unit tests include the observed public BetTip latest response
+shape, date/cutover checks, duplicates and rejection of malformed or future
+results. Full Android emulator QA and live network availability are separately
+subject to the GitHub Actions workflow; this code change alone is not a proven
+published APK.
