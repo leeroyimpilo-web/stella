@@ -73,9 +73,20 @@ public class SmokeInstrumentation extends Instrumentation {
       store.clearImports();
       check(store.draws(Game.LOTTO, 0).isEmpty(), "Clear imports did not remove seeded draws");
       click("tab_home");
-      requireText("No results downloaded yet");
+      requireText("Latest result not stored yet");
       rejectText("SAMPLE DATA");
       shot("01-home-empty");
+      click("menu_toggle");
+      clickAccessible("User manual library");
+      requireText("Short lessons");
+      click("chapter_0");
+      requireText("Your first three steps");
+      click("menu_toggle");
+      clickAccessible("Frequently asked questions");
+      requireText("Tap a question to read its answer");
+      click("faq_0");
+      clickAccessible("Done");
+      click("tab_home");
       click("home_check");
       requireText("Check a ticket");
       click("choose_numbers");
@@ -98,7 +109,8 @@ public class SmokeInstrumentation extends Instrumentation {
       check(store.importDraws(Arrays.asList(fixture)) == 1, "Import failed");
       check(store.importDraws(Arrays.asList(fixture)) == 0, "Identical import was not idempotent");
       click("tab_home");
-      requireText("Latest available result");
+      requireText("Latest saved result");
+      requireText("AI Lotto Stats");
       shot("03-home-with-import");
       click("home_check");
       click("check_ticket");
@@ -306,6 +318,20 @@ public class SmokeInstrumentation extends Instrumentation {
   }
 
   private void click(String tag) {
+    // The drawer replaces the old duplicated bottom tabs.
+    if (tag.startsWith("tab_")) {
+      click("menu_toggle");
+      String label;
+      switch (tag) {
+        case "tab_home": label = "Home dashboard"; break;
+        case "tab_results": label = "Latest results"; break;
+        case "tab_lab": label = "All research tools"; break;
+        case "tab_numbers": label = "My saved numbers"; break;
+        default: throw new IllegalArgumentException("Unknown destination: " + tag);
+      }
+      clickAccessible(label);
+      return;
+    }
     onMain(
         () -> {
           View v = activity.getWindow().getDecorView().findViewWithTag(tag);
