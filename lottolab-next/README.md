@@ -145,7 +145,7 @@ preserved tickets and signed upgrade from 0.4.
   This opens online; payout figures are NOT yet imported into the phone database and
   are NOT used to claim or calculate a monetary win. Confirm tickets and cash prizes
   through the operator or a retailer. The archive publisher is independent of LottoLab.
-- Result notifications remain a single understandable opt-in, since newer Android
+- Home also matches saved dated ticket numbers against cached draw results automatically.\n  A missing draw is shown as unknown; main, bonus and PowerBall matches are\n  displayed without claiming a verified prize or cash payment.\n- Result notifications remain a single understandable opt-in, since newer Android
   versions require explicit notification permission. Selecting it enables notifications
   for all currently supported games rather than showing one checkbox per game.
 
