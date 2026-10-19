@@ -108,11 +108,14 @@ public final class MainActivity extends Activity {
             android.graphics.Insets x =
                 insets.getInsets(
                     WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
-            v.setPadding(x.left, x.top, x.right, x.bottom);
+            // Some emulator and large-font configurations report a zero or stale
+            // status-bar inset after a display-size change. Never let the title
+            // overlap the system clock or cutout.
+            v.setPadding(x.left, Math.max(x.top, dp(76)), x.right, x.bottom);
           } else
             v.setPadding(
                 insets.getSystemWindowInsetLeft(),
-                insets.getSystemWindowInsetTop(),
+                Math.max(insets.getSystemWindowInsetTop(), dp(76)),
                 insets.getSystemWindowInsetRight(),
                 insets.getSystemWindowInsetBottom());
           return insets;
