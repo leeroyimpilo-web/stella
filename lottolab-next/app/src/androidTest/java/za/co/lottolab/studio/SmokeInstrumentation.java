@@ -77,12 +77,12 @@ public class SmokeInstrumentation extends Instrumentation {
       rejectText("SAMPLE DATA");
       shot("01-home-empty");
       click("menu_toggle");
-      clickAccessible("User manual library");
+      click("menu_library");
       requireText("Short lessons");
       click("chapter_0");
       requireText("Your first three steps");
       click("menu_toggle");
-      clickAccessible("Frequently asked questions");
+      click("menu_faq");
       requireText("Tap a question to read its answer");
       click("faq_0");
       clickAccessible("Done");
@@ -321,21 +321,27 @@ public class SmokeInstrumentation extends Instrumentation {
     // The drawer replaces the old duplicated bottom tabs.
     if (tag.startsWith("tab_")) {
       click("menu_toggle");
-      String label;
+      String menuTag;
       switch (tag) {
-        case "tab_home": label = "Home dashboard"; break;
-        case "tab_results": label = "Latest results"; break;
-        case "tab_lab": label = "All research tools"; break;
-        case "tab_numbers": label = "My saved numbers"; break;
-        default: throw new IllegalArgumentException("Unknown destination: " + tag);
+        case "tab_home": menuTag = "menu_home"; break;
+        case "tab_results": menuTag = "menu_results"; break;
+        case "tab_lab": menuTag = "menu_lab"; break;
+        case "tab_numbers": menuTag = "menu_numbers"; break;
+        default: throw new IllegalArgumentException(tag);
       }
-      clickAccessible(label);
+      click(menuTag);
       return;
     }
     onMain(
         () -> {
-          View v = activity.getWindow().getDecorView().findViewWithTag(tag);
+          View root = tag.startsWith("menu_") && !tag.equals("menu_toggle")
+              ? (activity.drawer == null ? null : activity.drawer.getContentView())
+              : activity.getWindow().getDecorView();
+          View v = root == null ? null : root.findViewWithTag(tag);
           check(v != null, "Missing control: " + tag);
+          if (tag.startsWith("menu_") && !tag.equals("menu_toggle"))
+            check(v.isClickable() && v.getContentDescription() != null,
+                "Drawer item must be clickable and labelled: " + tag);
           check(v.performClick(), "Cannot click: " + tag);
         });
     SystemClock.sleep(150);
