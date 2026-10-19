@@ -16,10 +16,11 @@ public final class ResultUpdates extends JobService {
   public static void schedule(Context c) {
     ArchiveStore store = new ArchiveStore(c);
     android.content.SharedPreferences prefs = store.preferences();
-    // No setup step for users. Retain any pre-existing approved custom HTTPS feed;
-    // otherwise use the public operator-site adapter automatically.
-    if (prefs.getString("feed_url", "").trim().isEmpty())
-      prefs.edit().putString("feed_url", OperatorResults.ENDPOINT).apply();
+    // Upgrade the old optional public-website feed automatically to BetTip.
+    // Preserve a user's previously configured custom approved HTTPS feed.
+    String previous = prefs.getString("feed_url", "");
+    if (previous.trim().isEmpty() || OperatorResults.ENDPOINT.equals(previous))
+      prefs.edit().putString("feed_url", BetTipResults.LATEST).apply();
     // Automatic updates are a core LottoLab feature, not an opt-in setting.
     prefs.edit().putBoolean("background_updates", true).apply();
     boolean enabled = true;
@@ -56,16 +57,18 @@ public final class ResultUpdates extends JobService {
               ArchiveStore store = new ArchiveStore(this);
               try {
                 store.preferences().edit().putLong("last_attempt", System.currentTimeMillis()).apply();
-                List<Draw> draws = FeedClient.fetch(store.preferences().getString("feed_url", ""));
+                String source = store.preferences().getString("feed_url", BetTipResults.LATEST);
                 if (!stopped) {
-                  int changed = store.importDraws(draws);
-                  store
-                      .preferences()
-                      .edit()
-                      .putLong("last_sync", System.currentTimeMillis())
-                      .putString("sync_error", "")
-                      .apply();
-                  if (changed > 0) notifyAvailable(this, store);
+                  int changed;
+                  if (BetTipResults.LATEST.equals(source)) {
+                    changed = BetTipResults.synchronize(store).changes;
+                  } else {
+                    changed = store.importDraws(FeedClient.fetch(source));
+                    store.preferences().edit()
+                        .putLong("last_sync", System.currentTimeMillis())
+                        .putString("sync_error", "").apply();
+                  }
+                  if (changed > 0 && !stopped) notifyAvailable(this, store);
                 }
               } catch (Exception e) {
                 // Preserve all cached results. Next network-constrained job retries.
@@ -120,7 +123,8 @@ public final class ResultUpdates extends JobService {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         String title = g.shortName + " · " + d.date;
         String message =
-            (d.verification.equals("feed") ? "New feed result" : "New imported result")
+            ((d.verification.equals("feed") || d.verification.equals("bettip"))
+                ? "New downloaded result" : "New imported result")
                 + ". Tap to check your numbers; confirm with the official result.";
         manager.notify(
             d.key().hashCode(),
