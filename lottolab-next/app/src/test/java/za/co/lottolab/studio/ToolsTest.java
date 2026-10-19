@@ -9,6 +9,39 @@ import org.junit.Test;
 
 public class ToolsTest {
   @Test
+  public void smartInsightsCountOnlySameRuleEraAndKeepTiesDeterministic() {
+    List<Draw> draws = Arrays.asList(
+        new Draw(Game.LOTTO, LocalDate.of(2026, 10, 17), new int[]{1, 2, 3, 4, 5, 6}, 7, 0),
+        new Draw(Game.LOTTO, LocalDate.of(2026, 10, 14), new int[]{1, 2, 8, 9, 10, 11}, 12, 0),
+        new Draw(Game.LOTTO, LocalDate.of(2026, 5, 30), new int[]{30, 31, 32, 33, 34, 58}, 57, 0));
+    SmartInsights insight = SmartInsights.analyze(Game.LOTTO, draws, 30);
+    assertNotNull(insight);
+    assertEquals(2, insight.drawCount);
+    assertEquals(1, insight.mostNumber);
+    assertEquals(2, insight.mostCount);
+    assertEquals(7, insight.leastNumber); // 7 was only a bonus, not a main number
+    assertEquals(0, insight.leastCount);
+    assertEquals(3, insight.lastOdd);
+    assertEquals(3, insight.lastEven);
+    assertEquals(21, insight.lastTotal);
+    assertEquals(2, insight.repeatsFromPrevious);
+  }
+
+  @Test
+  public void offlineManualAndFaqCoverMainAppTasks() {
+    assertTrue(HelpLibrary.CHAPTERS.length >= 10);
+    assertTrue(HelpLibrary.FAQ.length >= 10);
+    for (String[] chapter : HelpLibrary.CHAPTERS) {
+      assertEquals(3, chapter.length);
+      assertTrue(chapter[2].length() > 80);
+    }
+    for (String[] question : HelpLibrary.FAQ) {
+      assertEquals(2, question.length);
+      assertFalse(question[1].trim().isEmpty());
+    }
+  }
+
+  @Test
   public void historicalPowerPoolIsSeparateAndDated() {
     assertEquals(20, RuleSet.forDate(Game.POWERBALL, LocalDate.of(2026, 5, 29)).powerPool);
     assertEquals(16, RuleSet.forDate(Game.POWERBALL, LocalDate.of(2026, 6, 2)).powerPool);
