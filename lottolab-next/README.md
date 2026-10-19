@@ -1,4 +1,4 @@
-# LottoLab 0.4
+# LottoLab 0.5
 
 A native Android lottery workspace with four clear tabs. This upgrades the existing `lottolab-next` project and retains application ID `za.co.lottolab.studio`, its SQLite database and saved preferences. It uses the existing Java/native Android stack rather than replacing the app with a WebView or introducing a new package.
 
@@ -101,3 +101,25 @@ Run `python3 lottolab-next/tools/build_seed.py` before local builds; its parser 
 can run offline with `--fixture-only`. Build includes historical seed automatically in CI.
 The archive site is independent of the lottery operator and does not provide an official developer
 API SLA. Check the operator's published results before making a prize claim.
+
+
+## Usability refresh (0.5)
+
+The same lab-inspired colors and native Android UI remain. A top-left **☰** button opens the primary
+side menu, with the features grouped by what someone is trying to do: start here, my numbers,
+past results, other tools, help and data. The redundant bottom tab bar is hidden. Previously
+working tools and their data models are retained.
+
+Home now follows: game choice → locally computed “AI Lotto Stats” → latest saved result →
+clear Check / Generate / Browse / My Numbers actions → help entry points. The name “AI Lotto
+Stats” describes *smart historical analytics* only; there is no external AI service, future
+prediction or paid service. Numbers come exclusively from up to 30 available same-era draws.
+
+The User manual library and FAQ are packaged as Java assets, requiring no internet connection.
+Help text avoids unexplained formulas and includes data-source, update, backup and
+18+ information. The existing optional online feed and bundled SQLite offline archive continue
+unchanged. No sensitive data is uploaded for stats or help.
+
+User testing: verify screen reader access to each drawer link, narrow Android screens,
+all drawer routes, Help chapters and FAQ dialogs, Home stats consistency, offline startup,
+preserved tickets and signed upgrade from 0.4.
