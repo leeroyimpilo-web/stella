@@ -10,7 +10,10 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -18,10 +21,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Android SDK packages
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - name: Check preinstalled Android SDK
+        run: |
+          ls -la "$ANDROID_HOME/platforms/android-35"
+          ls -la "$ANDROID_HOME/build-tools/35.0.0"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
