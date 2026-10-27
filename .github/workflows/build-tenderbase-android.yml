@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   apk:
@@ -38,7 +38,7 @@ jobs:
           "$SDKMANAGER" 'platform-tools' 'platforms;android-34' 'build-tools;34.0.0'
       - name: Install dependencies
         working-directory: appsource
-        run: npm ci
+        run: npm install --no-audit --no-fund
       - name: Generate Android wrapper
         working-directory: appsource
         env:
@@ -62,3 +62,11 @@ jobs:
           path: appsource/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
           if-no-files-found: error
+      - name: Publish direct APK download (preview)
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp appsource/android/app/build/outputs/apk/debug/app-debug.apk TenderBase-Android-Preview.apk
+          gh release create tenderbase-android-preview-20261027 TenderBase-Android-Preview.apk --repo "$GITHUB_REPOSITORY" --title "TenderBase Android APK - development preview" --notes "Development preview compiled from tenderbase/TenderbaseAPK. The Android wrapper points to https://tenderbase.vercel.app, currently documented as an undeployed placeholder. App functions require the real hosted Next.js interface." --prerelease --target "$GITHUB_SHA" 
