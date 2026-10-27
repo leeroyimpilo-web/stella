@@ -1,0 +1,60 @@
+name: TenderBase Android APK (isolated build)
+
+on:
+  push:
+    branches: [tenderbase-apk-build-2026-10-27]
+    paths:
+      - '.github/workflows/build-tenderbase-android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Get original TenderBase app
+        uses: actions/checkout@v4
+        with:
+          repository: tenderbase/TenderbaseAPK
+          ref: main
+          path: appsource
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install dependencies
+        working-directory: appsource
+        run: npm ci
+      - name: Generate Android wrapper
+        working-directory: appsource
+        env:
+          TENDERBASE_APP_URL: https://tenderbase.vercel.app
+        run: |
+          npx cap add android
+          npx cap sync android
+      - name: Assemble installable debug APK
+        working-directory: appsource/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --max-workers=2
+      - name: APK size and checksum
+        run: |
+          ls -lh appsource/android/app/build/outputs/apk/debug/app-debug.apk
+          sha256sum appsource/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: TenderBase-Android-APK-preview
+          path: appsource/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+          if-no-files-found: error
